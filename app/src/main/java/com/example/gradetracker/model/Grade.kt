@@ -1,8 +1,6 @@
-package com.example.gradetracker
+package com.example.gradetracker.model
 
 import java.util.UUID
-
-
 
 data class Grade(
     val id: String = UUID.randomUUID().toString(),

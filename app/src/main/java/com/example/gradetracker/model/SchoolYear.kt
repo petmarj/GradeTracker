@@ -1,4 +1,4 @@
-package com.example.gradetracker
+package com.example.gradetracker.model
 
 import java.util.UUID
 

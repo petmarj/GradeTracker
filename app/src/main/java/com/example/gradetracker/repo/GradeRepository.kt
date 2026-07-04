@@ -1,13 +1,14 @@
 package com.example.gradetracker.repo
 
-import com.example.gradetracker.model.Grade
-import com.example.gradetracker.model.SchoolYear
-import com.example.gradetracker.model.Subject
+import androidx.compose.runtime.mutableStateListOf
+import com.example.gradetracker.data.Grade
+import com.example.gradetracker.data.SchoolYear
+import com.example.gradetracker.data.Subject
 
 object GradeRepository {
-    val schoolYears = mutableListOf<SchoolYear>()
-    val subjects = mutableListOf<Subject>()
-    val grades = mutableListOf<Grade>()
+    val schoolYears = mutableStateListOf<SchoolYear>()
+    val subjects = mutableStateListOf<Subject>()
+    val grades = mutableStateListOf<Grade>()
 
     fun addSchoolYear(schoolYear: SchoolYear){
         schoolYears.add(schoolYear)
@@ -20,22 +21,22 @@ object GradeRepository {
     }
 
 
-    fun getSubject(subjectId: String): Subject?{
+    fun getSubject(subjectId: String?): Subject?{
         return subjects.find{it.id == subjectId}
     }
     fun getGrade(gradeId: String): Grade?{
         return grades.find{it.id == gradeId}
     }
-    fun getSchoolYear(schoolYearId: String): SchoolYear?{
+    fun getSchoolYear(schoolYearId: String?): SchoolYear?{
         return schoolYears.find{it.id == schoolYearId}
     }
 
 
-    fun getGradesForSubject(subjectId: String): List<Grade>{
+    fun getGradesForSubject(subjectId: String?): List<Grade>{
         return grades.filter { it.subjectId == subjectId}
     }
 
-    fun getSubjectsForSchoolYear(schoolYearId: String): List<Subject>{
+    fun getSubjectsForSchoolYear(schoolYearId: String?): List<Subject>{
         return subjects.filter { it.schoolYearId == schoolYearId}
     }
 

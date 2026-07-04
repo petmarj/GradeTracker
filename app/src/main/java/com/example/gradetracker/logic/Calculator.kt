@@ -1,6 +1,5 @@
 package com.example.gradetracker.logic
 
-import com.example.gradetracker.model.Grade
 import com.example.gradetracker.repo.GradeRepository
 import kotlin.math.round
 
@@ -39,8 +38,16 @@ object Calculator {
 
     fun getPointsForSubject(subjectId: String): Double{
         val average = roundToHalf(getAverageForSubject(subjectId))
-        return if (average >= 4) 6 - average
-        else (4 - average) * 2
+        return if (average >= 4) average - 4
+        else (average - 4) * 2
+    }
+
+    fun getPointsForSchoolYear(schoolYearId: String): Double{
+        var points = 0.0
+        for (subject in GradeRepository.getSubjectsForSchoolYear(schoolYearId)){
+            points += getPointsForSubject(subject.id)
+        }
+        return points
     }
 
     fun roundToQuarter(x: Double): Double{
@@ -48,6 +55,12 @@ object Calculator {
     }
     fun roundToHalf(x: Double): Double{
         return round(x*2)/2
+    }
+    fun roundToTenth(x: Double): Double{
+        return round(x*10)/10
+    }
+    fun roundToHundred(x: Double): Double{
+        return round(x*100)/100
     }
 
     fun getNumberOfGradesForSubject(subjectId: String): Int{

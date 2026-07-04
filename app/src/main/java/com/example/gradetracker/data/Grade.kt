@@ -1,12 +1,12 @@
-package com.example.gradetracker.model
+package com.example.gradetracker.data
 
+import java.time.LocalDate
 import java.util.UUID
 
 data class Grade(
     val id: String = UUID.randomUUID().toString(),
-    val subjectId: String,
-    var title: String,
+    val subjectId: String?,
+    var name: String,
     var value: Double,
     var weight: Double = 1.0,
-    var date: Long  = System.currentTimeMillis()
 )

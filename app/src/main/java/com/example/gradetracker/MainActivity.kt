@@ -4,45 +4,56 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.gradetracker.ui.theme.GradeTrackerTheme
+import com.example.gradetracker.ui.theme.screens.HomeScreen
+import com.example.gradetracker.ui.theme.screens.SchoolYearScreen
+import androidx.navigation.navArgument
+import com.example.gradetracker.ui.theme.screens.SubjectScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        android.util.Log.d("GradeTracker", "onCreate wurde aufgerufen")
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GradeTrackerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Marius",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            GradeTrackerTheme() {
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = "homeScreen"
+                ) {
+                    composable("homeScreen") {
+                        HomeScreen(navController)
+                    }
+                    composable(
+                        route = "schoolYearScreen/{schoolYearId}",
+                        arguments = listOf(navArgument("schoolYearId") {
+                            type = NavType.StringType
+                        }))
+                    {
+                        backStackEntry ->
+                        val id = backStackEntry.arguments?.getString("schoolYearId")
+                        SchoolYearScreen(navController, id)
+                    }
+                    composable(
+                        route = "subjectScreen/{subjectId}",
+                        arguments = listOf(navArgument("subjectId") {
+                            type = NavType.StringType
+                        }))
+                    {
+                            backStackEntry ->
+                        val id = backStackEntry.arguments?.getString("subjectId")
+                        SubjectScreen(navController, id,)
+                    }
+
                 }
+
+
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GradeTrackerTheme {
-        Greeting("Android")
     }
 }

@@ -13,16 +13,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.SemanticsActions.OnClick
 import androidx.compose.ui.unit.dp
-import com.example.gradetracker.data.SchoolYear
-import com.example.gradetracker.data.Subject
 import com.example.gradetracker.logic.Calculator
-import com.example.gradetracker.repo.GradeRepository
-import com.example.gradetracker.ui.theme.screens.SchoolYearScreen
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import kotlin.math.round
 
 @Composable
 fun GradeCard(

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.collectAsState
 import com.example.gradetracker.data.SchoolYear
 import com.example.gradetracker.repo.GradeRepository
 import com.example.gradetracker.ui.components.SchoolYearCard
@@ -23,8 +23,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.example.gradetracker.data.database.DatabaseProvider
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -32,6 +34,14 @@ fun HomeScreen(navController: NavController){
     android.util.Log.d("GradeTracker", "------------------------------------------- HOMESCREEN --------------------------------------------------------------------")
     var showDialog by remember { mutableStateOf(false) }
     var schoolYearName by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val repository = remember {
+        GradeRepository(
+            DatabaseProvider.getDatabase(context)
+        )
+    }
+    val schoolYears by repository.getAllSchoolYears()
+        .collectAsState(initial = emptyList())
 
     Column(modifier = Modifier.safeDrawingPadding().fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
         Text(
@@ -42,7 +52,7 @@ fun HomeScreen(navController: NavController){
 
 
         LazyColumn(modifier = Modifier.padding(8.dp)) {
-            items(GradeRepository.getAllSchoolYears()) { schoolYear ->
+            items(schoolYears) { schoolYear ->
 
                 SchoolYearCard(
                     schoolYear = schoolYear,
@@ -83,7 +93,13 @@ fun HomeScreen(navController: NavController){
                     Button(
                         onClick = {
                             if (schoolYearName.isNotBlank()){
-                                GradeRepository.addSchoolYear(SchoolYear(name = schoolYearName))
+                                val newYear = SchoolYear(name = schoolYearName)
+
+                                kotlinx.coroutines.CoroutineScope(
+                                    kotlinx.coroutines.Dispatchers.IO
+                                ).launch {
+                                    repository.addSchoolYear(newYear)
+                                }
                                 schoolYearName = ""
                                 showDialog = false
                             }

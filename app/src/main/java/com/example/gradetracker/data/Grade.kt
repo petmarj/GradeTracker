@@ -1,6 +1,5 @@
 package com.example.gradetracker.data
 
-import java.time.LocalDate
 import java.util.UUID
 
 data class Grade(

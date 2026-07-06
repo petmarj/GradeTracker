@@ -1,11 +1,13 @@
 package com.example.gradetracker.logic
 
+import com.example.gradetracker.data.Grade
 import com.example.gradetracker.repo.GradeRepository
 import kotlin.math.round
 
 object Calculator {
-    fun getAverageForSubject(subjectId: String): Double {
-        val grades = GradeRepository.getGradesForSubject(subjectId)
+
+    fun getAverageForGrades(grades: List<Grade>): Double {
+
 
         val weightSum = grades.sumOf { it.weight }
         val weightedSum = grades.sumOf { it.weight * it.value }
@@ -14,21 +16,10 @@ object Calculator {
         return weightedSum / weightSum
     }
 
-    fun getAverageForSchoolYear(schoolYearId: String): Double{
-        val subjects = GradeRepository.getSubjectsForSchoolYear(schoolYearId)
 
-        if (subjects.isEmpty()) return 0.0
-        val subjectCount = subjects.size
-        var subjectGradesSum = 0.0
 
-        for (subject in subjects){
-            subjectGradesSum += getAverageForSubject(subject.id)
-        }
-        return subjectGradesSum / subjectCount
-    }
+    fun neededGradeForGoal(grades: List<Grade>, goal: Double, weight: Double = 1.0): Double{
 
-    fun neededGradeForGoal(subjectId: String, goal: Double, weight: Double = 1.0): Double{
-        val grades = GradeRepository.getGradesForSubject(subjectId)
 
         val weightSum = grades.sumOf { it.weight }
         val weightedSum = grades.sumOf { it.weight * it.value }
@@ -36,19 +27,12 @@ object Calculator {
         return goal * (weightSum + weight) - weightedSum
     }
 
-    fun getPointsForSubject(subjectId: String): Double{
-        val average = roundToHalf(getAverageForSubject(subjectId))
+    fun getPointsForGrades(grades: List<Grade>): Double{
+        val average = roundToHalf(getAverageForGrades(grades))
         return if (average >= 4) average - 4
         else (average - 4) * 2
     }
 
-    fun getPointsForSchoolYear(schoolYearId: String): Double{
-        var points = 0.0
-        for (subject in GradeRepository.getSubjectsForSchoolYear(schoolYearId)){
-            points += getPointsForSubject(subject.id)
-        }
-        return points
-    }
 
     fun roundToQuarter(x: Double): Double{
         return round(x*4)/4
@@ -63,17 +47,4 @@ object Calculator {
         return round(x*100)/100
     }
 
-    fun getNumberOfGradesForSubject(subjectId: String): Int{
-        return GradeRepository.getGradesForSubject(subjectId).size
-    }
-    fun getNumberOfGradesForSchoolYear(schoolYearId: String): Int{
-        var count = 0
-        for (subject in GradeRepository.getSubjectsForSchoolYear(schoolYearId)){
-            count += getNumberOfGradesForSubject(subject.id)
-        }
-        return count
-    }
-    fun getNumberOfSubjectsForSchoolYear(schoolYearId: String): Int{
-        return GradeRepository.getSubjectsForSchoolYear(schoolYearId).size
-    }
 }

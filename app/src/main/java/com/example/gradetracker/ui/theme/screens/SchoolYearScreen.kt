@@ -15,23 +15,44 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
 import com.example.gradetracker.repo.GradeRepository
-import com.example.gradetracker.ui.components.SchoolYearCard
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import com.example.gradetracker.data.SchoolYear
 import com.example.gradetracker.data.Subject
+import com.example.gradetracker.data.database.DatabaseProvider
 import com.example.gradetracker.ui.components.SubjectCard
+import kotlinx.coroutines.launch
 
 
 @Composable
-fun SchoolYearScreen(navController: NavController, schoolYearId: String?){
-    android.util.Log.d("GradeTracker", "------------------------------------------- SCHOOLSCREEN --------------------------------------------------------------------")
-    val schoolYear = GradeRepository.getSchoolYear(schoolYearId)
+fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
+
+    val context = LocalContext.current
+
+    val repository = remember {
+        GradeRepository(DatabaseProvider.getDatabase(context))
+    }
+
+    var schoolYear by remember { mutableStateOf<SchoolYear?>(null) }
+    var subjects by remember { mutableStateOf<List<Subject?>>(emptyList()) }
+
+    LaunchedEffect(schoolYearId) {
+        if (schoolYearId != null) {
+            schoolYear = repository.getSchoolYear(schoolYearId)
+            subjects = repository.getSubjectsForSchoolYear(schoolYearId)
+        }
+
+    }
+
     var showDialog by remember { mutableStateOf(false) }
     var subjectName by remember { mutableStateOf("") }
+
 
     Column(modifier = Modifier.safeDrawingPadding().fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
         Text(
@@ -41,12 +62,12 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?){
 
 
         LazyColumn(modifier = Modifier.padding(8.dp)) {
-            items(GradeRepository.getSubjectsForSchoolYear(schoolYearId)) { subject ->
+            items(subjects) { subject ->
 
                 SubjectCard(
                     subject = subject,
                     onClick = {
-                        navController.navigate("subjectScreen/${subject.id}")
+                        navController.navigate("subjectScreen/${subject?.id}")
                     }
                 )
             }
@@ -82,8 +103,14 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?){
                     Button(
                         onClick = {
                             if (subjectName.isNotBlank()){
-                                GradeRepository.addSubject(Subject(name = subjectName, schoolYearId = schoolYear?.id
-                                    ?: ""))
+                                val newSubject = Subject(name = subjectName, schoolYearId = schoolYearId)
+
+
+                                kotlinx.coroutines.CoroutineScope(
+                                    kotlinx.coroutines.Dispatchers.IO
+                                ).launch {
+                                    repository.addSubject(newSubject)
+                                }
                                 subjectName = ""
                                 showDialog = false
                             }

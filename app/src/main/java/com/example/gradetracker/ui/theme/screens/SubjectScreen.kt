@@ -1,11 +1,8 @@
 package com.example.gradetracker.ui.theme.screens
 
-import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
@@ -17,28 +14,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.LaunchedEffect
 import com.example.gradetracker.repo.GradeRepository
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
 import androidx.navigation.NavController
 import com.example.gradetracker.data.Grade
+import com.example.gradetracker.data.Subject
+import com.example.gradetracker.data.database.DatabaseProvider
 import com.example.gradetracker.ui.theme.components.GradeCard
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
 
 @Composable
@@ -46,14 +36,22 @@ fun SubjectScreen(
     navController: NavController,
     subjectId: String?,
 ){
+    val context = LocalContext.current
+
+    val repository = remember {
+        GradeRepository(DatabaseProvider.getDatabase(context))
+    }
     android.util.Log.d("GradeTracker", "------------------------------------------- SCHOOLSCREEN --------------------------------------------------------------------")
-    val subject = GradeRepository.getSubject(subjectId)
-    var editGrade: Grade
     var showDialog by remember { mutableStateOf(false) }
-    var showDialogEdit by remember { mutableStateOf(false) }
     var gradeName by remember { mutableStateOf("") }
     var gradeValue by remember { mutableStateOf("") }
     var gradeWeight by remember { mutableStateOf("1.0") }
+    var subject by remember { mutableStateOf<Subject?>(null) }
+    LaunchedEffect(subjectId) {
+        if (subjectId!=null){
+            subject = repository.getSubject(subjectId)
+        }
+    }
 
 
     Column(modifier = Modifier.safeDrawingPadding().fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
@@ -64,7 +62,7 @@ fun SubjectScreen(
 
 
         LazyColumn(modifier = Modifier.padding(8.dp)) {
-            items(GradeRepository.getGradesForSubject(subjectId)) { grade ->
+            items(repository.getGradesForSubject(subjectId)) { grade ->
 
                 GradeCard(
                     grade = grade,
@@ -136,7 +134,7 @@ fun SubjectScreen(
                     Button(
                         onClick = {
                             if (gradeName.isNotBlank() && gradeValue.isNotBlank() && gradeWeight.isNotBlank()){
-                                GradeRepository.addGrade(Grade(name = gradeName, value = gradeValue.toDouble(), weight = gradeWeight.toDouble(), subjectId = subjectId))
+                                repository.addGrade(Grade(name = gradeName, value = gradeValue.toDouble(), weight = gradeWeight.toDouble(), subjectId = subjectId))
                                 gradeName = ""
                                 gradeWeight = "1.0"
                                 gradeValue = ""

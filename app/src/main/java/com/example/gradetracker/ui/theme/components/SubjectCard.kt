@@ -10,19 +10,25 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.SemanticsActions.OnClick
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.gradetracker.data.SchoolYear
 import com.example.gradetracker.data.Subject
+import com.example.gradetracker.data.database.DatabaseProvider
 import com.example.gradetracker.logic.Calculator
-import com.example.gradetracker.ui.theme.screens.SchoolYearScreen
+import com.example.gradetracker.repo.GradeRepository
 
 @Composable
 fun SubjectCard(
-    subject: Subject,
+    subject: Subject?,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    val repository = remember {
+        GradeRepository(DatabaseProvider.getDatabase(context))
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -34,7 +40,7 @@ fun SubjectCard(
         ) {
 
             Text(
-                text = subject.name,
+                text = subject?.name ?: "Fehler",
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -44,12 +50,12 @@ fun SubjectCard(
             ) {
                 Text(
                     "Schnitt: %.2f".format(
-                        Calculator.getAverageForSubject(subject.id)
+                        Calculator.getAverageForGrades(repository.getGradesForSubject(subject?.id))
                     )
                 )
 
                 Text(
-                    "${Calculator.getNumberOfGradesForSubject(subject.id)} Tests"
+                    "${repository.getGradesForSubject(subjectId = subject?.id).size} Tests"
                 )
             }
         }

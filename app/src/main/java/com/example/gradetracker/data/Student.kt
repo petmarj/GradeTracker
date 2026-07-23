@@ -11,7 +11,6 @@ data class Student(
     val id: Int,
     val firstname: String,
     val lastname: String,
-    val address: String,
     val tel: String,
     val nationality: String,
     val majorSubject: String,

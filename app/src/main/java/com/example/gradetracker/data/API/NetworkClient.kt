@@ -9,11 +9,11 @@ object NetworkClient {
     private const val BASE_URL =
         "https://absenzen.lerbermatt.ch/api/v1/"
 
-    val schedulerApi: SchedulerApi by lazy {
+    val lerbermattApi: LerbermattApi by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(SchedulerApi::class.java)
+            .create(LerbermattApi::class.java)
     }
 }

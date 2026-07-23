@@ -12,6 +12,8 @@ import com.example.gradetracker.ui.theme.GradeTrackerTheme
 import com.example.gradetracker.ui.theme.screens.HomeScreen
 import com.example.gradetracker.ui.theme.screens.SchoolYearScreen
 import androidx.navigation.navArgument
+import com.example.gradetracker.ui.theme.components.SchedulerViewModel
+import com.example.gradetracker.ui.theme.screens.ApiTestScreen
 import com.example.gradetracker.ui.theme.screens.SubjectScreen
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +23,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GradeTrackerTheme() {
-                val navController = rememberNavController()
+                ApiTestScreen()
+                /*val navController = rememberNavController()
                 NavHost(
                     navController = navController,
                     startDestination = "homeScreen"
@@ -50,7 +53,7 @@ class MainActivity : ComponentActivity() {
                         SubjectScreen(navController, id,)
                     }
 
-                }
+                }*/
 
 
             }

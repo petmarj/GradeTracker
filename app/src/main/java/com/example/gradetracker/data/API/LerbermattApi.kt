@@ -7,7 +7,7 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 
-interface SchedulerApi {
+interface LerbermattApi {
 
     @Headers("Accept: application/json")
     @POST("Scheduler/Get")

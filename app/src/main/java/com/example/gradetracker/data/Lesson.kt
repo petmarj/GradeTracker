@@ -1,9 +1,10 @@
 package com.example.gradetracker.data
 
+import com.google.gson.annotations.SerializedName
 import java.time.DayOfWeek
 
 data class Lesson (
-    val lessonId: Int,
+    val id: Int,
     val date: String,
     val dayOfWeek: Int,
     val isCompleted: Boolean,
@@ -12,5 +13,5 @@ data class Lesson (
     val teacher: Teacher,
     val timeslot: TimeSlot,
     val lessonRooms: List<Room>,
-    val exams: List<Exam>
+    val exams: List<Exam>?
     )

@@ -1,18 +1,16 @@
 package com.example.gradetracker.repo
 
 
-import com.example.gradetracker.data.API.SchedulerApi
+import com.example.gradetracker.data.API.LerbermattApi
 import com.example.gradetracker.data.API.SchedulerRequest
 import com.example.gradetracker.data.API.SchedulerResponse
-import com.example.gradetracker.data.API.TokenStore
-import com.example.gradetracker.data.database.dao.StudentDao
 import retrofit2.HttpException
 import java.io.IOException
 
 class SchedulerRepository(
-    private val api: SchedulerApi,
-    private val studentDao: StudentDao,
-    private val tokenStore: TokenStore
+    private val api: LerbermattApi,
+    //private val studentDao: StudentDao,
+    //private val tokenStore: TokenStore
 ) {
 
     suspend fun getSchedule(

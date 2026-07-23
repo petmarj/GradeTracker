@@ -10,5 +10,5 @@ data class Absence (
     val state: Int,
     val type: Int,
     val parentConfirmationState: Int,
-    val timeSlot: TimeSlot
+    val timeslot: TimeSlot
 )

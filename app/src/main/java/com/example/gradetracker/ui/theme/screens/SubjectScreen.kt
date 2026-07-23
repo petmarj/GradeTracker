@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import com.example.gradetracker.repo.GradeRepository
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -29,6 +30,7 @@ import com.example.gradetracker.data.Grade
 import com.example.gradetracker.data.Subject
 import com.example.gradetracker.data.database.DatabaseProvider
 import com.example.gradetracker.ui.theme.components.GradeCard
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -47,6 +49,7 @@ fun SubjectScreen(
     var gradeValue by remember { mutableStateOf("") }
     var gradeWeight by remember { mutableStateOf("1.0") }
     var subject by remember { mutableStateOf<Subject?>(null) }
+    val grades by repository.getGradesForSubject(subject?.id).collectAsState(initial = emptyList())
     LaunchedEffect(subjectId) {
         if (subjectId!=null){
             subject = repository.getSubject(subjectId)
@@ -54,7 +57,10 @@ fun SubjectScreen(
     }
 
 
-    Column(modifier = Modifier.safeDrawingPadding().fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
+    Column(modifier = Modifier
+        .safeDrawingPadding()
+        .fillMaxSize()
+        .padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
         Text(
             text = subject?.name ?:"Fehler" ,
             style = MaterialTheme.typography.headlineMedium
@@ -62,7 +68,7 @@ fun SubjectScreen(
 
 
         LazyColumn(modifier = Modifier.padding(8.dp)) {
-            items(repository.getGradesForSubject(subjectId)) { grade ->
+            items(grades) { grade ->
 
                 GradeCard(
                     grade = grade,
@@ -134,7 +140,14 @@ fun SubjectScreen(
                     Button(
                         onClick = {
                             if (gradeName.isNotBlank() && gradeValue.isNotBlank() && gradeWeight.isNotBlank()){
-                                repository.addGrade(Grade(name = gradeName, value = gradeValue.toDouble(), weight = gradeWeight.toDouble(), subjectId = subjectId))
+                                val newGrade = Grade(name = gradeName, weight = gradeWeight.toDouble(), value = gradeValue.toDouble(), subjectId = subjectId)
+
+
+                                kotlinx.coroutines.CoroutineScope(
+                                    kotlinx.coroutines.Dispatchers.IO
+                                ).launch {
+                                    repository.addGrade(newGrade)
+                                }
                                 gradeName = ""
                                 gradeWeight = "1.0"
                                 gradeValue = ""

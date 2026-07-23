@@ -15,6 +15,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "grade_tracker_db"
             )
+                .fallbackToDestructiveMigration(true)
                 .build()
 
             INSTANCE = instance

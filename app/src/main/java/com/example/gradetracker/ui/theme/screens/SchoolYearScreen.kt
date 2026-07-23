@@ -28,7 +28,8 @@ import com.example.gradetracker.data.Subject
 import com.example.gradetracker.data.database.DatabaseProvider
 import com.example.gradetracker.ui.components.SubjectCard
 import kotlinx.coroutines.launch
-
+import androidx.compose.runtime.collectAsState
+import kotlin.collections.emptyList
 
 @Composable
 fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
@@ -40,15 +41,14 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
     }
 
     var schoolYear by remember { mutableStateOf<SchoolYear?>(null) }
-    var subjects by remember { mutableStateOf<List<Subject?>>(emptyList()) }
+    val subjects by repository.getSubjectsForSchoolYear(schoolYearId!!).collectAsState(initial = emptyList())
 
     LaunchedEffect(schoolYearId) {
-        if (schoolYearId != null) {
-            schoolYear = repository.getSchoolYear(schoolYearId)
-            subjects = repository.getSubjectsForSchoolYear(schoolYearId)
-        }
+
+        schoolYear = repository.getSchoolYear(schoolYearId)
 
     }
+
 
     var showDialog by remember { mutableStateOf(false) }
     var subjectName by remember { mutableStateOf("") }

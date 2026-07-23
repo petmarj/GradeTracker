@@ -6,13 +6,17 @@ import com.example.gradetracker.data.SchoolYear
 import com.example.gradetracker.data.Subject
 import com.example.gradetracker.data.database.AppDatabase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 class GradeRepository(
     private val db: AppDatabase
 ) {
     private val schoolYearDao = db.schoolYearDao()
     private val subjectDao = db.subjectDao()
-    val grades = mutableStateListOf<Grade>()
+
+    private val gradeDao = db.gradeDao()
+
 
 
     suspend fun addSchoolYear(schoolYear: SchoolYear) {
@@ -21,38 +25,44 @@ class GradeRepository(
     suspend fun addSubject(subject: Subject){
         subjectDao.insert(subject)
     }
-    fun addGrade(grade: Grade){
-        grades.add(grade)
+    suspend fun addGrade(grade: Grade){
+        gradeDao.insert(grade)
     }
 
 
     suspend fun getSubject(subjectId: String): Subject?{
         return subjectDao.getById(subjectId)
     }
-    fun getGrade(gradeId: String): Grade?{
-        return grades.find{it.id == gradeId}
+    suspend fun getGrade(gradeId: String): Grade?{
+        return gradeDao.getById(gradeId)
     }
     suspend fun getSchoolYear(schoolYearId: String): SchoolYear? {
         return schoolYearDao.getById(schoolYearId)
     }
 
 
-    fun getGradesForSubject(subjectId: String?): List<Grade>{
-        return grades.filter { it.subjectId == subjectId}
+    fun getGradesForSubject(subjectId: String?): Flow<List<Grade>>{
+        return gradeDao.getGradesBySubject(subjectId)
     }
 
-    suspend fun getSubjectsForSchoolYear(schoolYearId: String?): List<Subject>{
-        return subjectDao.getSubjectsBySchoolYearId(schoolYearId)
+    fun getSubjectsForSchoolYear(schoolYearId: String?): Flow<List<Subject>>{
+        return subjectDao.getSubjectsBySchoolYear(schoolYearId)
     }
 
-    suspend fun getGradesForSchoolYear(schoolYearId: String): List<Grade>{
-        val subjectIds = subjectDao.getSubjectsBySchoolYearId(schoolYearId).map{it.id}
-        return grades.filter { it.subjectId in subjectIds }
+    fun getGradesForSchoolYear(schoolYearId: String): Flow<List<Grade>>{
+        return combine(
+            subjectDao.getSubjectsBySchoolYear(schoolYearId),
+            gradeDao.getAll()) { subjects, grades ->
+
+            val subjectIds = subjects.map { it.id }
+
+            grades.filter { it.subjectId in subjectIds }
+        }
     }
 
 
-    fun deleteGrade(gradeId: String){
-        grades.removeIf { it.id == gradeId }
+    suspend fun deleteGrade(gradeId: String){
+        gradeDao.deleteById(gradeId)
     }
     suspend fun deleteSubject(subjectId: String) {
         subjectDao.deleteById(subjectId)
@@ -64,8 +74,8 @@ class GradeRepository(
     fun getAllSchoolYears(): Flow<List<SchoolYear>> {
         return schoolYearDao.getAll()
     }
-    fun getAllGrades(): List<Grade>{
-        return grades
+    fun getAllGrades(): Flow<List<Grade>>{
+        return gradeDao.getAll()
     }
     fun getAllSubjects(): Flow<List<Subject>>{
         return subjectDao.getAll()

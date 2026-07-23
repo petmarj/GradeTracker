@@ -43,6 +43,7 @@ fun HomeScreen(navController: NavController){
     val schoolYears by repository.getAllSchoolYears()
         .collectAsState(initial = emptyList())
 
+
     Column(modifier = Modifier.safeDrawingPadding().fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
         Text(
             text = "GradeTracker",

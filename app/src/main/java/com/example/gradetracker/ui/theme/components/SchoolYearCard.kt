@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +26,8 @@ import com.example.gradetracker.data.database.DatabaseProvider
 import com.example.gradetracker.logic.Calculator
 import com.example.gradetracker.repo.GradeRepository
 import com.example.gradetracker.ui.theme.screens.SchoolYearScreen
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 fun SchoolYearCard(
@@ -36,10 +39,8 @@ fun SchoolYearCard(
     val repository = remember {
         GradeRepository(DatabaseProvider.getDatabase(context))
     }
-    var grades by remember { mutableStateOf<List<Grade>>(emptyList()) }
-    LaunchedEffect(schoolYear) {
-        grades = repository.getGradesForSchoolYear(schoolYearId = schoolYear.id)
-    }
+    val grades by repository.getGradesForSchoolYear(schoolYear.id).collectAsState(initial = emptyList())
+    val subjects by repository.getSubjectsForSchoolYear(schoolYear.id).collectAsState(initial = emptyList())
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,7 +67,7 @@ fun SchoolYearCard(
                 )
 
                 Text(
-                    "${grades.size} Fächer"
+                    "${subjects.size} Fächer"
                 )
             }
         }

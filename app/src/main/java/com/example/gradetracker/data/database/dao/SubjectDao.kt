@@ -22,6 +22,6 @@ interface SubjectDao {
     @Query("SELECT * FROM Subject WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): Subject?
 
-    @Query("SELECT * FROM Subject WHERE schoolYearId = :id LIMIT 1")
-    suspend fun getSubjectsBySchoolYearId(id: String?): List<Subject>
+    @Query("SELECT * FROM Subject WHERE schoolYearId = :id")
+    fun getSubjectsBySchoolYear(id: String?): Flow<List<Subject>>
 }

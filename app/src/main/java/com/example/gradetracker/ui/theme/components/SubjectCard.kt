@@ -10,6 +10,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +31,8 @@ fun SubjectCard(
     val repository = remember {
         GradeRepository(DatabaseProvider.getDatabase(context))
     }
+
+    val grades by repository.getGradesForSubject(subject?.id).collectAsState(initial = emptyList())
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -50,12 +54,12 @@ fun SubjectCard(
             ) {
                 Text(
                     "Schnitt: %.2f".format(
-                        Calculator.getAverageForGrades(repository.getGradesForSubject(subject?.id))
+                        Calculator.getAverageForGrades(grades)
                     )
                 )
 
                 Text(
-                    "${repository.getGradesForSubject(subjectId = subject?.id).size} Tests"
+                    "${grades.size} Tests"
                 )
             }
         }

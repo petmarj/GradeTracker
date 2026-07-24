@@ -1,19 +1,16 @@
 package com.example.gradetracker.ui.theme.components
 
 import com.example.gradetracker.data.API.SchedulerResponse
+import com.example.gradetracker.data.HolidayType
 import org.jetbrains.annotations.Async
+import java.time.LocalDate
 
-sealed interface SchedulerUiState {
-
-    data object Idle : SchedulerUiState
-
-    data object Loading : SchedulerUiState
-
-    data class Success(
-        val schedule: SchedulerResponse
-    ) : SchedulerUiState
-
-    data class Error(
-        val message: String
-    ) : SchedulerUiState
-}
+data class SchedulerUiState(
+    val weekStart: LocalDate,
+    val weekEnd: LocalDate,
+    val schedule: SchedulerResponse? = null,
+    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val errorMessage: String? = null,
+    val holiday: HolidayType? = null
+)

@@ -4,17 +4,19 @@ package com.example.gradetracker.repo
 import com.example.gradetracker.data.API.LerbermattApi
 import com.example.gradetracker.data.API.SchedulerRequest
 import com.example.gradetracker.data.API.SchedulerResponse
+import com.example.gradetracker.data.API.TokenStore
 import retrofit2.HttpException
 import java.io.IOException
 
 class SchedulerRepository(
     private val api: LerbermattApi,
     //private val studentDao: StudentDao,
-    //private val tokenStore: TokenStore
+    private val tokenStore: TokenStore
+
 ) {
 
+
     suspend fun getSchedule(
-        token: String,
         from: String,
         to: String
     ): SchedulerResponse {
@@ -22,8 +24,9 @@ class SchedulerRepository(
             from = from,
             to = to
         )
+        val token = tokenStore.getToken()
 
-        val authorization = if (token.startsWith("Bearer ")) {
+        val authorization = if (token?.startsWith("Bearer ") ?: false) {
             token
         } else {
             "Bearer $token"

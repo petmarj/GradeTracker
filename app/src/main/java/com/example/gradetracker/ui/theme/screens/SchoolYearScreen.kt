@@ -54,7 +54,7 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
     var subjectName by remember { mutableStateOf("") }
 
 
-    Column(modifier = Modifier.safeDrawingPadding().fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp),) {
         Text(
             text = schoolYear?.name ?:"Fehler" ,
             style = MaterialTheme.typography.headlineMedium

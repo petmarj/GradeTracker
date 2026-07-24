@@ -13,7 +13,7 @@ import com.example.gradetracker.data.database.dao.SubjectDao
 
 @Database(
     entities = [SchoolYear::class, Subject::class, Grade::class, Student::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase(){

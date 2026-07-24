@@ -61,8 +61,8 @@ fun SchoolYearCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "%.2f  (${Calculator.getPointsForGrades(grades)})".format(
-                        Calculator.getAverageForGrades(grades)
+                    "%.2f  (${Calculator.getPointsForSchoolYear(grades = grades, subjects = subjects)})".format(
+                        Calculator.getAverageForSchoolYear(subjects = subjects, grades = grades)
                     )
                 )
 

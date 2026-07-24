@@ -1,7 +1,9 @@
 package com.example.gradetracker.logic
 
 import com.example.gradetracker.data.Grade
+import com.example.gradetracker.data.Subject
 import com.example.gradetracker.repo.GradeRepository
+import java.util.Locale.filter
 import kotlin.math.round
 
 object Calculator {
@@ -16,6 +18,21 @@ object Calculator {
         return weightedSum / weightSum
     }
 
+    fun getAverageForSchoolYear(subjects:List<Subject>, grades: List<Grade>): Double{
+        var subjectAverageGradeSum: Double = 0.0
+        var subjectCount: Int = 0
+        for (subject in subjects) {
+            val subjectGrades = grades.filter { grade -> grade.subjectId == subject.id }
+            if (subjectGrades.isEmpty()){continue}
+            subjectAverageGradeSum += getAverageForGrades(subjectGrades)
+            subjectCount += 1
+        }
+        return if (subjectCount == 0){
+            0.0
+        } else {
+            subjectAverageGradeSum / subjectCount
+        }
+    }
 
 
     fun neededGradeForGoal(grades: List<Grade>, goal: Double, weight: Double = 1.0): Double{
@@ -27,10 +44,21 @@ object Calculator {
         return goal * (weightSum + weight) - weightedSum
     }
 
-    fun getPointsForGrades(grades: List<Grade>): Double{
-        val average = roundToHalf(getAverageForGrades(grades))
-        return if (average >= 4) average - 4
-        else (average - 4) * 2
+    fun getPointsForSchoolYear(grades: List<Grade>, subjects: List<Subject>): Double{
+        var points = 0.0
+        for (subject in subjects){
+            val subjectGrades = grades.filter { grade -> grade.subjectId == subject.id }
+            if (subjectGrades.isEmpty()){continue}
+            val durchschnitt = getAverageForGrades(subjectGrades)
+            points +=   if(durchschnitt >= 4){
+                            durchschnitt-4}
+                        else {
+                            2*(durchschnitt-4)
+                        }
+
+        }
+        return points
+
     }
 
 

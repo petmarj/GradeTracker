@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 data class Subject (
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
+    val timeCreated: Long = System.currentTimeMillis(),
     val name: String,
     val schoolYearId: String?
 )

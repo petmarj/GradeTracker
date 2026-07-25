@@ -30,7 +30,6 @@ fun ScheduleGrid(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 65.dp)
             .horizontalScroll(horizontalScrollState)
             .verticalScroll(verticalScrollState)
     ) {

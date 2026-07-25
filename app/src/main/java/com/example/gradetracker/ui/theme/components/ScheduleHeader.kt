@@ -32,8 +32,7 @@ import java.time.temporal.WeekFields
 fun ScheduleHeader(
     weekStart: LocalDate,
     onPreviousWeek: () -> Unit,
-    onNextWeek: () -> Unit,
-    onRefresh: () -> Unit
+    onNextWeek: () -> Unit
 ) {
     val weekEnd = weekStart.plusDays(4)
     val weekNumber = weekStart.get(
@@ -71,12 +70,6 @@ fun ScheduleHeader(
         }
 
         Row {
-            IconButton(onClick = onRefresh) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Aktualisieren"
-                )
-            }
 
             IconButton(onClick = onNextWeek) {
                 Icon(

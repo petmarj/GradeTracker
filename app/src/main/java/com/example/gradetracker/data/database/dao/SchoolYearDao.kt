@@ -3,6 +3,7 @@ package com.example.gradetracker.data.database.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import com.example.gradetracker.data.SchoolYear
 
@@ -15,9 +16,11 @@ interface SchoolYearDao {
     @Insert
     suspend fun insert(schoolYear: SchoolYear)
 
+    @Update
+    suspend fun update(schoolYear: SchoolYear)
     @Query("DELETE FROM SchoolYear WHERE id = :id")
     suspend fun deleteById(id: String)
 
     @Query("SELECT * FROM SchoolYear WHERE id = :id LIMIT 1")
-    suspend fun getById(id: String): SchoolYear?
+    suspend fun getById(id: String?): SchoolYear?
 }

@@ -20,7 +20,7 @@ fun TimeCell(
     Column(
         modifier = Modifier
             .width(70.dp)
-            .height(60.dp)
+            .height(55.dp)
             .border(
                 width = 0.5.dp,
                 color = MaterialTheme.colorScheme.outlineVariant

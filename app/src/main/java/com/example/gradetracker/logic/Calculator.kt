@@ -2,54 +2,54 @@ package com.example.gradetracker.logic
 
 import com.example.gradetracker.data.Grade
 import com.example.gradetracker.data.Subject
-import com.example.gradetracker.repo.GradeRepository
-import java.util.Locale.filter
 import kotlin.math.round
 
 object Calculator {
 
-    fun getAverageForGrades(grades: List<Grade>): Double {
+    fun getAverageForGrades(grades: List<Grade>): Double? {
 
 
         val weightSum = grades.sumOf { it.weight }
         val weightedSum = grades.sumOf { it.weight * it.value }
 
-        if (grades.isEmpty() || weightSum == 0.0) return 0.0
+        if (grades.isEmpty() || weightSum == 0.0) return null
         return weightedSum / weightSum
     }
 
-    fun getAverageForSchoolYear(subjects:List<Subject>, grades: List<Grade>): Double{
+    fun getAverageForSchoolYear(subjects:List<Subject>, grades: List<Grade>): Double?{
         var subjectAverageGradeSum: Double = 0.0
         var subjectCount: Int = 0
         for (subject in subjects) {
             val subjectGrades = grades.filter { grade -> grade.subjectId == subject.id }
-            if (subjectGrades.isEmpty()){continue}
-            subjectAverageGradeSum += getAverageForGrades(subjectGrades)
+            if (subjectGrades.isEmpty()||getAverageForGrades(subjectGrades) == null){continue}
+            getAverageForGrades(subjectGrades)?.let { subjectAverageGradeSum += it }
             subjectCount += 1
         }
         return if (subjectCount == 0){
-            0.0
+            null
         } else {
             subjectAverageGradeSum / subjectCount
         }
     }
 
 
-    fun neededGradeForGoal(grades: List<Grade>, goal: Double, weight: Double = 1.0): Double{
-
+    fun neededGradeForGoal(grades: List<Grade>, goal: Double, weight: Double = 1.0): Double?{
+        if (weight <= 0.0) return null
 
         val weightSum = grades.sumOf { it.weight }
         val weightedSum = grades.sumOf { it.weight * it.value }
 
-        return goal * (weightSum + weight) - weightedSum
+        return (
+                goal * (weightSum + weight) - weightedSum
+                ) / weight
     }
 
-    fun getPointsForSchoolYear(grades: List<Grade>, subjects: List<Subject>): Double{
+    fun getPointsForSchoolYear(grades: List<Grade>, subjects: List<Subject>): Double?{
         var points = 0.0
         for (subject in subjects){
             val subjectGrades = grades.filter { grade -> grade.subjectId == subject.id }
             if (subjectGrades.isEmpty()){continue}
-            val durchschnitt = getAverageForGrades(subjectGrades)
+            val durchschnitt = roundToHalf(getAverageForGrades(subjectGrades)) ?: 0.0
             points +=   if(durchschnitt >= 4){
                             durchschnitt-4}
                         else {
@@ -57,7 +57,13 @@ object Calculator {
                         }
 
         }
-        return points
+
+        return if (points == 0.0)
+        {
+            null
+        } else {
+            points
+        }
 
     }
 
@@ -65,14 +71,23 @@ object Calculator {
     fun roundToQuarter(x: Double): Double{
         return round(x*4)/4
     }
-    fun roundToHalf(x: Double): Double{
-        return round(x*2)/2
+    fun roundToHalf(x: Double?): Double?{
+        return if(x != null) {
+            round(x*2)/2
+        } else {
+            null}
     }
-    fun roundToTenth(x: Double): Double{
-        return round(x*10)/10
+    fun roundToTenth(x: Double?): Double?{
+        return if(x != null) {
+            round(x*10)/10
+        } else {
+            null}
     }
-    fun roundToHundred(x: Double): Double{
-        return round(x*100)/100
+    fun roundToHundred(x: Double?): Double?{
+        return if(x != null) {
+            round(x*100)/100
+        } else {
+            null}
     }
 
 }

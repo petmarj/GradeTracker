@@ -1,13 +1,11 @@
 package com.example.gradetracker.repo
 
-import androidx.compose.runtime.mutableStateListOf
 import com.example.gradetracker.data.Grade
 import com.example.gradetracker.data.SchoolYear
 import com.example.gradetracker.data.Subject
 import com.example.gradetracker.data.database.AppDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 
 class GradeRepository(
     private val db: AppDatabase
@@ -36,7 +34,7 @@ class GradeRepository(
     suspend fun getGrade(gradeId: String): Grade?{
         return gradeDao.getById(gradeId)
     }
-    suspend fun getSchoolYear(schoolYearId: String): SchoolYear? {
+    suspend fun getSchoolYear(schoolYearId: String?): SchoolYear? {
         return schoolYearDao.getById(schoolYearId)
     }
 
@@ -61,7 +59,7 @@ class GradeRepository(
     }
 
 
-    suspend fun deleteGrade(gradeId: String){
+    suspend fun deleteGrade(gradeId: String?){
         gradeDao.deleteById(gradeId)
     }
     suspend fun deleteSubject(subjectId: String) {
@@ -71,6 +69,15 @@ class GradeRepository(
         schoolYearDao.deleteById(schoolYearId)
     }
 
+    suspend fun updateGrade(grade: Grade) {
+        gradeDao.update(grade)
+    }
+    suspend fun updateSubject(subject: Subject) {
+        subjectDao.update(subject)
+    }
+    suspend fun updateSchoolYear(schoolYear: SchoolYear) {
+        schoolYearDao.update(schoolYear)
+    }
     fun getAllSchoolYears(): Flow<List<SchoolYear>> {
         return schoolYearDao.getAll()
     }

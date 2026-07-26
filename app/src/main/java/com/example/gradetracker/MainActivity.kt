@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -18,20 +17,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.gradetracker.data.API.NetworkClient
-import com.example.gradetracker.data.API.TokenStore
-import com.example.gradetracker.data.SchedulerViewModelFactory
-import com.example.gradetracker.repo.SchedulerRepository
+import com.example.gradetracker.data.remote.NetworkClient
+import com.example.gradetracker.data.remote.TokenStore
+import com.example.gradetracker.ui.schedule.SchedulerViewModelFactory
+import com.example.gradetracker.data.repository.SchedulerRepository
 import com.example.gradetracker.ui.theme.GradeTrackerTheme
-import com.example.gradetracker.ui.theme.components.GradeTrackerNavigationBar
-import com.example.gradetracker.ui.theme.components.SchedulerViewModel
-import com.example.gradetracker.ui.theme.components.TopLevelDestination
-import com.example.gradetracker.ui.theme.screens.HomeScreen
-import com.example.gradetracker.ui.theme.screens.PlaceholderScreen
-import com.example.gradetracker.ui.theme.screens.ScheduleScreen
-import com.example.gradetracker.ui.theme.screens.SchoolYearScreen
-import com.example.gradetracker.ui.theme.screens.SubjectScreen
-
+import com.example.gradetracker.ui.navigation.GradeTrackerNavigationBar
+import com.example.gradetracker.ui.schedule.SchedulerViewModel
+import com.example.gradetracker.ui.navigation.TopLevelDestination
+import com.example.gradetracker.ui.home.HomeScreen
+import com.example.gradetracker.ui.PlaceholderScreen
+import com.example.gradetracker.ui.schedule.ScheduleScreen
+import com.example.gradetracker.ui.schoolyear.SchoolYearScreen
+import com.example.gradetracker.ui.subject.SubjectScreen
+import androidx.compose.ui.platform.LocalContext
+import com.example.gradetracker.data.remote.SharedPreferencesTokenStore
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,8 +69,10 @@ private fun GradeTrackerApp() {
                 HomeScreen(navController)
             }
             composable(TopLevelDestination.SCHEDULE.route) {
-                val tokenStore = remember {
-                    object : TokenStore {}
+                val context = LocalContext.current
+
+                val tokenStore: TokenStore = remember(context) {
+                    SharedPreferencesTokenStore(context)
                 }
 
                 val repository = remember {

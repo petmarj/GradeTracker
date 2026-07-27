@@ -20,7 +20,6 @@ data class Grade(
 enum class GradeSort {
     NEWEST,
     OLDEST,
-    VALUE_ASC,
     VALUE_DESC,
     NAME
 }

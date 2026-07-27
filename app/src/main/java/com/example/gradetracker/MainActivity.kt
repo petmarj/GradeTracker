@@ -1,5 +1,6 @@
 package com.example.gradetracker
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,8 +8,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -31,24 +35,78 @@ import com.example.gradetracker.ui.schedule.ScheduleScreen
 import com.example.gradetracker.ui.schoolyear.SchoolYearScreen
 import com.example.gradetracker.ui.subject.SubjectScreen
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
+import com.example.gradetracker.data.preferences.SortPreferences
 import com.example.gradetracker.data.remote.SharedPreferencesTokenStore
+import com.example.gradetracker.ui.settings.SettingsScreen
+import com.example.gradetracker.ui.settings.SettingsViewModel
+import com.example.gradetracker.ui.settings.SettingsViewModelFactory
+import com.example.gradetracker.ui.theme.ThemeMode
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GradeTrackerTheme {
-                GradeTrackerApp()
+            val context = LocalContext.current
+
+            val preferences = remember(context) {
+                context.getSharedPreferences(
+                    "app_settings",
+                    Context.MODE_PRIVATE
+                )
+            }
+            val sortPreferences = remember(context) {
+                SortPreferences(context)
+            }
+
+            var themeMode by remember {
+                mutableStateOf(
+                    runCatching {
+                        ThemeMode.valueOf(
+                            preferences.getString(
+                                "theme_mode",
+                                ThemeMode.SYSTEM.name
+                            )!!
+                        )
+                    }.getOrDefault(ThemeMode.SYSTEM)
+                )
+            }
+
+            GradeTrackerTheme(
+                themeMode = themeMode
+            ) {
+                GradeTrackerApp(
+                    themeMode = themeMode,
+                    onThemeModeChange = { newMode ->
+                        themeMode = newMode
+
+                        preferences.edit {
+                            putString("theme_mode", newMode.name)
+                        }
+
+
+                    },
+                    sortPreferences = sortPreferences
+                )
             }
         }
     }
 }
 
 @Composable
-private fun GradeTrackerApp() {
+private fun GradeTrackerApp(
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    sortPreferences: SortPreferences
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val defaultSubjectSort by
+    sortPreferences.subjectSort.collectAsState()
+
+    val defaultGradeSort by
+    sortPreferences.gradeSort.collectAsState()
 
 
     Scaffold(
@@ -99,7 +157,33 @@ private fun GradeTrackerApp() {
                 PlaceholderScreen(title = TopLevelDestination.STATS.label)
             }
             composable(TopLevelDestination.SETTINGS.route) {
-                PlaceholderScreen(title = TopLevelDestination.SETTINGS.label)
+                val context = LocalContext.current
+
+                val tokenStore: TokenStore = remember(context) {
+                    SharedPreferencesTokenStore(context)
+                }
+                val schedulerRepository = remember {
+                    SchedulerRepository(
+                        api = NetworkClient.lerbermattApi,
+                        tokenStore = tokenStore
+                    )
+                }
+                val factory = remember {
+                    SettingsViewModelFactory(
+                        tokenStore,
+                        schedulerRepository,
+                        sortPreferences
+                    )
+                }
+                val settingsViewModel: SettingsViewModel = viewModel(
+                    factory = factory
+                )
+
+                SettingsScreen(
+                    viewModel = settingsViewModel,
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange
+                )
             }
             composable(
                 route = "schoolYearScreen/{schoolYearId}",
@@ -109,7 +193,8 @@ private fun GradeTrackerApp() {
             ) { entry ->
                 SchoolYearScreen(
                     navController = navController,
-                    schoolYearId = entry.arguments?.getString("schoolYearId")
+                    schoolYearId = entry.arguments?.getString("schoolYearId"),
+                    defaultSubjectSort = defaultSubjectSort
                 )
             }
             composable(
@@ -120,7 +205,8 @@ private fun GradeTrackerApp() {
             ) { entry ->
                 SubjectScreen(
                     navController = navController,
-                    subjectId = entry.arguments?.getString("subjectId")
+                    subjectId = entry.arguments?.getString("subjectId"),
+                    defaultGradeSort = defaultGradeSort
                 )
             }
         }

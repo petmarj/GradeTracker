@@ -29,9 +29,7 @@ class SchedulerViewModel(
             .now(zurichZone)
             .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
     private val currentFriday: LocalDate
-        get() = LocalDate
-            .now(zurichZone)
-            .with(TemporalAdjusters.previousOrSame(DayOfWeek.FRIDAY))
+        get() = currentMonday.plusDays(4)
 
     private val _uiState = MutableStateFlow(
         SchedulerUiState(
@@ -103,7 +101,7 @@ class SchedulerViewModel(
             _uiState.update {
                 it.copy(
                     holiday = null,
-                    isLoading = !isRefresh && it.schedule == null,
+                    isLoading = !isRefresh,
                     isRefreshing = isRefresh,
                     errorMessage = null
                 )
@@ -115,8 +113,6 @@ class SchedulerViewModel(
                     to = "$weekEnd"
                 )
 
-                // Verhindert, dass das Ergebnis einer alten Anfrage
-                // in eine inzwischen andere Woche geschrieben wird.
                 if (_uiState.value.weekStart == weekStart) {
                     _uiState.update {
                         it.copy(
@@ -131,9 +127,9 @@ class SchedulerViewModel(
                 showError("Keine Verbindung zur API.")
             } catch (exception: HttpException) {
                 val message = when (exception.code()) {
-                    401 -> "Der Token ist ungültig oder abgelaufen."
+                    401 -> "Token ist ungültig oder abgelaufen."
                     403 -> "Keine Berechtigung für den Stundenplan."
-                    else -> "HTTP-Fehler ${exception.code()}."
+                    else -> "API Fehler, HTTP ERROR: ${exception.code()}."
                 }
 
                 showError(message)

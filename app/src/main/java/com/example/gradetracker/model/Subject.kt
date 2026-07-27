@@ -16,7 +16,6 @@ data class Subject (
 enum class SubjectSort {
     NEWEST,
     OLDEST,
-    VALUE_ASC,
     VALUE_DESC,
     NAME
 }

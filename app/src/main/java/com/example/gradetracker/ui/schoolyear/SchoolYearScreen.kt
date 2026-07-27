@@ -52,7 +52,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 @Composable
-fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
+fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaultSubjectSort: SubjectSort) {
 
     val context = LocalContext.current
 
@@ -78,7 +78,7 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
     var editingSubject by remember { mutableStateOf<Subject?>(null) }
     var triedToSave by remember { mutableStateOf(false) }
 
-    var subjectSort by remember { mutableStateOf(SubjectSort.NEWEST) }
+    var subjectSort by remember { mutableStateOf(defaultSubjectSort) }
     var filterMenuExpanded by remember { mutableStateOf(false) }
     val selectedColor = Color.Blue
     val unselectedColor = Color.White
@@ -173,16 +173,6 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
                             ) {
                                 Text("Bester Schnitt", color = if(subjectSort == SubjectSort.VALUE_DESC) {selectedColor} else {unselectedColor})
                             }
-                            /*TextButton(
-                                onClick = {
-                                    subjectSort = SubjectSort.VALUE_ASC
-                                    filterMenuExpanded = false
-                                },
-                                modifier = Modifier.fillMaxWidth()
-
-                            ) {
-                                Text("Schlechtester Durchschnitt", color = if(subjectSort == SubjectSort.VALUE_ASC) {selectedColor} else {unselectedColor})
-                            }*/
 
                         }
                     }
@@ -222,13 +212,6 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?) {
                     SubjectSort.NEWEST -> subjects.sortedByDescending { it.timeCreated }
                     SubjectSort.OLDEST -> subjects.sortedBy { it.timeCreated }
                     SubjectSort.NAME -> subjects.sortedBy { it.name }
-                    SubjectSort.VALUE_ASC -> subjects.sortedWith(
-                        compareBy<Subject> { subject ->
-                            Calculator.getAverageForGrades(
-                                grades.filter { it.subjectId == subject.id }
-                            ) ?: Double.NEGATIVE_INFINITY
-                        }.thenBy { it.name }
-                    )
                     SubjectSort.VALUE_DESC -> subjects.sortedWith(
                         compareByDescending<Subject> { subject ->
                             Calculator.getAverageForGrades(

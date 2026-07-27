@@ -4,7 +4,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,6 +28,11 @@ fun ScheduleScreen(
     val lessons = schedulerData?.lessons.orEmpty()
     val absences = schedulerData?.absences.orEmpty()
     val exams = schedulerData?.exams.orEmpty()
+    val lessonsByDay = state.schedule
+        ?.data
+        ?.lessons
+        .orEmpty()
+        .groupBy { lesson -> lesson.dayOfWeek }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -35,55 +43,57 @@ fun ScheduleScreen(
             onNextWeek = viewModel::nextWeek,
         )
 
-        if (state.holiday != null) {
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            when {
+                state.errorMessage != null -> {
+                    MessageBox(
+                        text = state.errorMessage!!
+                    )
+                }
 
-            Box(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Es sind gerade ${state.holiday!!.displayName}",
-                    textAlign = TextAlign.Center
-                )
+                state.holiday != null -> {
+                    MessageBox(
+                        text = "Es sind gerade ${state.holiday!!.displayName}"
+                    )
+                }
+
+                state.isLoading -> {
+                    MessageBox(
+                        text = "Laden..."
+                    )
+                }
+
+                else -> {
+                    ScheduleGrid(
+                        weekStart = state.weekStart,
+                        lessonsByDay = lessonsByDay,
+                        absences = absences,
+                        exams = exams
+                    )
+                }
             }
 
-
-        } else if (state.errorMessage != null){
-            Box(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Fehler: ${state.errorMessage}",
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else if (state.isLoading){
-            Box(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Laden...",
-                    textAlign = TextAlign.Center
-                )
-            }
         }
-        else {
+    }
+}
 
-
-            val lessonsByDay = state.schedule
-                ?.data
-                ?.lessons
-                .orEmpty()
-                .groupBy { lesson -> lesson.dayOfWeek }
-
-            ScheduleGrid(
-                weekStart = state.weekStart,
-                lessonsByDay = lessonsByDay,
-                absences = absences,
-                exams = exams
-            )
-        }
+@Composable
+private fun MessageBox(
+    text: String
+) {
+    Box(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            textAlign = TextAlign.Center
+        )
     }
 }

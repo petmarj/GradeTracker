@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 fun SubjectScreen(
     navController: NavController,
     subjectId: String?,
+    defaultGradeSort: GradeSort
 ){
     val context = LocalContext.current
 
@@ -78,7 +79,7 @@ fun SubjectScreen(
     var triedToSave by remember { mutableStateOf(false) }
     var triedToCalculate by remember { mutableStateOf(false) }
     var schoolYear by remember { mutableStateOf<SchoolYear?>(null) }
-    var gradeSort by remember { mutableStateOf(GradeSort.NEWEST) }
+    var gradeSort by remember { mutableStateOf(defaultGradeSort) }
     var filterMenuExpanded by remember { mutableStateOf(false) }
     val selectedColor = Color.Blue
     val unselectedColor = Color.White
@@ -173,20 +174,6 @@ fun SubjectScreen(
                             ) {
                                 Text("Beste Note", color = if(gradeSort == GradeSort.VALUE_DESC) {selectedColor} else {unselectedColor})
                             }
-                            /*TextButton(
-                                onClick = {
-                                    gradeSort = GradeSort.VALUE_ASC
-                                    filterMenuExpanded = false
-                                },
-                                modifier = Modifier.fillMaxWidth()
-
-                            ) {
-                                Text("Schlechteste Note", color = if(gradeSort == GradeSort.VALUE_ASC) {selectedColor} else {unselectedColor})
-                            }*/
-
-
-
-
                         }
                     }
                 }
@@ -216,7 +203,6 @@ fun SubjectScreen(
                     GradeSort.NEWEST -> grades.sortedByDescending { it.timeCreated }
                     GradeSort.OLDEST -> grades.sortedBy { it.timeCreated }
                     GradeSort.NAME -> grades.sortedBy { it.name }
-                    GradeSort.VALUE_ASC -> grades.sortedBy { it.value }
                     GradeSort.VALUE_DESC -> grades.sortedByDescending { it.value }
                 }
                 items(sortedGrades) { grade ->

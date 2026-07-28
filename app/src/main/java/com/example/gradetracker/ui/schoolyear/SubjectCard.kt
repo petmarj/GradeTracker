@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.gradetracker.model.Subject
 import com.example.gradetracker.data.local.database.DatabaseProvider
+import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.gradeColor
 import com.example.gradetracker.domain.Calculator
 import com.example.gradetracker.domain.Calculator.roundToHundred
@@ -43,6 +44,7 @@ import com.example.gradetracker.ui.subject.GradeColorStripe
 @Composable
 fun SubjectCard(
     subject: Subject,
+    gradeColorMode: GradeColorMode,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onEdit: () -> Unit
@@ -115,7 +117,10 @@ fun SubjectCard(
 
             }
             GradeColorStripe(
-                color = gradeColor(Calculator.getAverageForGrades(grades)),
+                color = gradeColor(
+                    grade = Calculator.getAverageForGrades(grades),
+                    mode = gradeColorMode
+                ),
                 modifier = Modifier.matchParentSize()
             )
             DropdownMenu(

@@ -30,13 +30,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.gradetracker.data.local.database.DatabaseProvider
+import com.example.gradetracker.model.GradeColorMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun HomeScreen(navController: NavController){
+fun HomeScreen(
+    navController: NavController,
+    gradeColorMode: GradeColorMode
+){
     Log.d("GradeTracker", "------------------------------------------- HOMESCREEN --------------------------------------------------------------------")
     var showDialog by remember { mutableStateOf(false) }
     var schoolYearName by remember { mutableStateOf("") }
@@ -85,6 +89,7 @@ fun HomeScreen(navController: NavController){
 
                     SchoolYearCard(
                         schoolYear = schoolYear,
+                        gradeColorMode = gradeColorMode,
                         onClick = {
                             navController.navigate("schoolYearScreen/${schoolYear.id}")
                         },

@@ -38,12 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.gradeColor
 import com.example.gradetracker.domain.Calculator
 
 @Composable
 fun GradeCard(
     grade: Grade,
+    gradeColorMode: GradeColorMode,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -116,7 +118,10 @@ fun GradeCard(
                 }
             }
             GradeColorStripe(
-                color = gradeColor(grade.value),
+                color = gradeColor(
+                    grade = grade.value,
+                    mode = gradeColorMode
+                ),
                 modifier = Modifier.matchParentSize()
             )
 

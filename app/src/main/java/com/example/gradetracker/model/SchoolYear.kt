@@ -18,7 +18,8 @@ data class SchoolYear (
 
 fun schoolYearColor(
     subjects: List<Subject>,
-    grades: List<Grade>
+    grades: List<Grade>,
+    mode: GradeColorMode = GradeColorMode.NORMAL
 ): Color {
     val validSubjectCount = subjects.count { subject ->
         val subjectGrades = grades.filter { it.subjectId == subject.id }
@@ -37,8 +38,8 @@ fun schoolYearColor(
     val maximum = validSubjectCount * 2.0
     val minimum = validSubjectCount * -6.0
 
-    val yellowAt = maximum * 0.25
-    val redAt = maximum * -0.25
+    val yellowAt = maximum * mode.schoolYearYellowRatio
+    val redAt = maximum * mode.schoolYearRedRatio
 
     val safePoints = points.coerceIn(minimum, maximum)
 

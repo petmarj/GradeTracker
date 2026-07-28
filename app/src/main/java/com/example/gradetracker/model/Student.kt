@@ -4,13 +4,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-@Entity
 data class Student(
-    @PrimaryKey
     val id: Int,
     val firstname: String,
     val lastname: String,
-    val tel: String,
+    val address: Address,
     val nationality: String,
     val majorSubject: String,
     val thirdLanguage: String,
@@ -23,5 +21,16 @@ data class Student(
     val halfDaysUsed: Int,
     val dispensations: Int,
     val absencesOpen: Int,
-    val classStr: String
+    val classStr: String,
+    val mint: Boolean,
+    val musicalInstrument: String,
+    val additionalLanguage: String
+)
+
+
+data class Address(
+    val addressLine1: String,
+    val addressLine2: String,
+    val city: String,
+    val zipCode: String
 )

@@ -2,9 +2,10 @@ package com.example.gradetracker.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gradetracker.data.preferences.SortPreferences
+import com.example.gradetracker.data.preferences.AppPreferences
 import com.example.gradetracker.data.remote.TokenStore
 import com.example.gradetracker.data.repository.SchedulerRepository
+import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.GradeSort
 import com.example.gradetracker.model.SubjectSort
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +25,7 @@ import java.time.temporal.TemporalAdjusters
 class SettingsViewModel(
     private val tokenStore: TokenStore,
     private val schedulerRepository: SchedulerRepository,
-    private val sortPreferences: SortPreferences
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -34,17 +35,13 @@ class SettingsViewModel(
         checkToken()
         testConnection()
         viewModelScope.launch {
-            sortPreferences.subjectSort.collect { sort ->
+            appPreferences.settings.collect { settings ->
                 _uiState.update {
-                    it.copy(subjectSort = sort)
-                }
-            }
-        }
-
-        viewModelScope.launch {
-            sortPreferences.gradeSort.collect { sort ->
-                _uiState.update {
-                    it.copy(gradeSort = sort)
+                    it.copy(
+                        subjectSort = settings.subjectSort,
+                        gradeSort = settings.gradeSort,
+                        gradeColorMode = settings.gradeColorMode
+                    )
                 }
             }
         }
@@ -60,11 +57,15 @@ class SettingsViewModel(
         }
     }
     fun setSubjectSort(sort: SubjectSort) {
-        sortPreferences.setSubjectSort(sort)
+        appPreferences.setSubjectSort(sort)
     }
 
     fun setGradeSort(sort: GradeSort) {
-        sortPreferences.setGradeSort(sort)
+        appPreferences.setGradeSort(sort)
+    }
+
+    fun setGradeColorMode(mode: GradeColorMode) {
+        appPreferences.setGradeColorMode(mode)
     }
 
     fun storeToken(token: String){

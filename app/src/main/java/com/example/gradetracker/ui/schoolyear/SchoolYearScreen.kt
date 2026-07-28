@@ -48,11 +48,19 @@ import com.example.gradetracker.domain.Calculator
 import com.example.gradetracker.domain.Calculator.roundToHundred
 import kotlin.collections.emptyList
 import com.example.gradetracker.model.SubjectSort
+import com.example.gradetracker.model.GradeColorMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 @Composable
-fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaultSubjectSort: SubjectSort) {
+fun SchoolYearScreen(
+    navController: NavController,
+    schoolYearId: String?,
+    defaultSubjectSort: SubjectSort,
+    gradeColorMode: GradeColorMode,
+    onSubjectSortChange: (SubjectSort) -> Unit,
+    subjectSort: SubjectSort
+) {
 
     val context = LocalContext.current
 
@@ -78,7 +86,6 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaul
     var editingSubject by remember { mutableStateOf<Subject?>(null) }
     var triedToSave by remember { mutableStateOf(false) }
 
-    var subjectSort by remember { mutableStateOf(defaultSubjectSort) }
     var filterMenuExpanded by remember { mutableStateOf(false) }
     val selectedColor = Color.Blue
     val unselectedColor = Color.White
@@ -133,7 +140,7 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaul
                         Column(verticalArrangement = Arrangement.SpaceEvenly) {
                             TextButton(
                                 onClick = {
-                                    subjectSort = SubjectSort.NEWEST
+                                    onSubjectSortChange(SubjectSort.NEWEST)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -143,7 +150,7 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaul
                             }
                             TextButton(
                                 onClick = {
-                                    subjectSort = SubjectSort.OLDEST
+                                    onSubjectSortChange(SubjectSort.OLDEST)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -155,7 +162,7 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaul
 
                             TextButton(
                                 onClick = {
-                                    subjectSort = SubjectSort.NAME
+                                    onSubjectSortChange(SubjectSort.NAME)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -165,7 +172,7 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaul
                             }
                             TextButton(
                                 onClick = {
-                                    subjectSort = SubjectSort.VALUE_DESC
+                                    onSubjectSortChange(SubjectSort.VALUE_DESC)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -224,6 +231,7 @@ fun SchoolYearScreen(navController: NavController, schoolYearId: String?, defaul
 
                     SubjectCard(
                         subject = subject,
+                        gradeColorMode = gradeColorMode,
                         onClick = {
                             navController.navigate("subjectScreen/${subject?.id}")
                         },

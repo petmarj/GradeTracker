@@ -1,5 +1,6 @@
 package com.example.gradetracker.ui.settings
 
+import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.GradeSort
 import com.example.gradetracker.model.SubjectSort
 
@@ -7,7 +8,8 @@ data class SettingsUiState(
     val tokenConfigured: Boolean = false,
     val connectionState: ConnectionState = ConnectionState.NotTested,
     val subjectSort: SubjectSort = SubjectSort.NEWEST,
-    val gradeSort: GradeSort = GradeSort.NEWEST
+    val gradeSort: GradeSort = GradeSort.NEWEST,
+    val gradeColorMode: GradeColorMode = GradeColorMode.NORMAL
 )
 
 sealed interface ConnectionState {

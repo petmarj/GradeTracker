@@ -23,7 +23,10 @@ enum class GradeSort {
     VALUE_DESC,
     NAME
 }
-fun gradeColor(grade: Double?): Color {
+fun gradeColor(
+    grade: Double?,
+    mode: GradeColorMode = GradeColorMode.NORMAL
+): Color {
     if (grade == null) return Color(0x00000000)
     val safeGrade = grade.coerceIn(1.0, 6.0)
 
@@ -32,17 +35,21 @@ fun gradeColor(grade: Double?): Color {
     val green = Color(0xFF00F000)
 
     return when {
-        grade <= 2.0 -> red
+        safeGrade <= mode.redUntil -> red
 
-        grade <= 4.5 -> {
-            // 2.0 = Rot, 4.5 = Gelb
-            val progress = ((grade - 2.0) / (4.5 - 2.0)).toFloat()
+        safeGrade <= mode.yellowAt -> {
+            val progress = (
+                (safeGrade - mode.redUntil) /
+                    (mode.yellowAt - mode.redUntil)
+                ).toFloat()
             lerp(red, yellow, progress)
         }
 
-        grade < 6.0 -> {
-            // 4.5 = Gelb, 6.0 = Grün
-            val progress = ((grade - 4.5) / (6.0 - 4.5)).toFloat()
+        safeGrade < 6.0 -> {
+            val progress = (
+                (safeGrade - mode.yellowAt) /
+                    (6.0 - mode.yellowAt)
+                ).toFloat()
             lerp(yellow, green, progress)
         }
 

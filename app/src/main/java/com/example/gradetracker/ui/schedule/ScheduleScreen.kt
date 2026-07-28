@@ -59,7 +59,7 @@ fun ScheduleScreen(
 
                 state.holiday != null -> {
                     MessageBox(
-                        text = "Es sind gerade ${state.holiday!!.displayName}"
+                        text = state.holiday!!.displayName
                     )
                 }
 

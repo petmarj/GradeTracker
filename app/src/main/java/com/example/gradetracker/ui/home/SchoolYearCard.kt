@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.gradetracker.model.SchoolYear
+import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.data.local.database.DatabaseProvider
 import com.example.gradetracker.model.schoolYearColor
 import com.example.gradetracker.domain.Calculator
@@ -49,6 +50,7 @@ import kotlin.math.abs
 @Composable
 fun SchoolYearCard(
     schoolYear: SchoolYear,
+    gradeColorMode: GradeColorMode,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onEdit: () -> Unit
@@ -161,7 +163,11 @@ fun SchoolYearCard(
                 }
             }
             ColorStripe(
-                color = schoolYearColor(subjects, grades),
+                color = schoolYearColor(
+                    subjects = subjects,
+                    grades = grades,
+                    mode = gradeColorMode
+                ),
                 modifier = Modifier.matchParentSize()
             )
             DropdownMenu(

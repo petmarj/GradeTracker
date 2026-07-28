@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.gradetracker.model.Grade
 import com.example.gradetracker.model.GradeSort
+import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.SchoolYear
 import com.example.gradetracker.model.Subject
 import com.example.gradetracker.data.local.database.DatabaseProvider
@@ -56,7 +57,10 @@ import kotlinx.coroutines.launch
 fun SubjectScreen(
     navController: NavController,
     subjectId: String?,
-    defaultGradeSort: GradeSort
+    defaultGradeSort: GradeSort,
+    gradeColorMode: GradeColorMode,
+    gradeSort: GradeSort,
+    onGradeSortChange: (GradeSort) -> Unit,
 ){
     val context = LocalContext.current
 
@@ -79,7 +83,7 @@ fun SubjectScreen(
     var triedToSave by remember { mutableStateOf(false) }
     var triedToCalculate by remember { mutableStateOf(false) }
     var schoolYear by remember { mutableStateOf<SchoolYear?>(null) }
-    var gradeSort by remember { mutableStateOf(defaultGradeSort) }
+
     var filterMenuExpanded by remember { mutableStateOf(false) }
     val selectedColor = Color.Blue
     val unselectedColor = Color.White
@@ -135,7 +139,7 @@ fun SubjectScreen(
                         Column(verticalArrangement = Arrangement.SpaceEvenly) {
                             TextButton(
                                 onClick = {
-                                    gradeSort = GradeSort.NEWEST
+                                    onGradeSortChange(GradeSort.NEWEST)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -145,7 +149,7 @@ fun SubjectScreen(
                             }
                             TextButton(
                                 onClick = {
-                                    gradeSort = GradeSort.OLDEST
+                                    onGradeSortChange(GradeSort.OLDEST)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -156,7 +160,7 @@ fun SubjectScreen(
                             }
                             TextButton(
                                 onClick = {
-                                    gradeSort = GradeSort.NAME
+                                    onGradeSortChange(GradeSort.NAME)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -166,7 +170,7 @@ fun SubjectScreen(
                             }
                             TextButton(
                                 onClick = {
-                                    gradeSort = GradeSort.VALUE_DESC
+                                    onGradeSortChange(GradeSort.VALUE_DESC)
                                     filterMenuExpanded = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
@@ -209,6 +213,7 @@ fun SubjectScreen(
 
                     GradeCard(
                         grade = grade,
+                        gradeColorMode = gradeColorMode,
                         onEdit = {
                             showDialog = true
                             isEdit = true

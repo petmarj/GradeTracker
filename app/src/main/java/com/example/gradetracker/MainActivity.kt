@@ -1,6 +1,5 @@
 package com.example.gradetracker
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,9 +9,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -35,13 +33,20 @@ import com.example.gradetracker.ui.schedule.ScheduleScreen
 import com.example.gradetracker.ui.schoolyear.SchoolYearScreen
 import com.example.gradetracker.ui.subject.SubjectScreen
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.edit
-import com.example.gradetracker.data.preferences.SortPreferences
+import com.example.gradetracker.data.preferences.AppPreferences
+import com.example.gradetracker.data.preferences.AppSettings
 import com.example.gradetracker.data.remote.SharedPreferencesTokenStore
+import com.example.gradetracker.data.repository.StudentRepository
+import com.example.gradetracker.model.GradeSort
+import com.example.gradetracker.model.SubjectSort
+import com.example.gradetracker.ui.navigation.MoreRoutes
 import com.example.gradetracker.ui.settings.SettingsScreen
 import com.example.gradetracker.ui.settings.SettingsViewModel
 import com.example.gradetracker.ui.settings.SettingsViewModelFactory
-import com.example.gradetracker.ui.theme.ThemeMode
+import com.example.gradetracker.ui.student.StudentScreen
+import com.example.gradetracker.ui.student.StudentViewModel
+import com.example.gradetracker.ui.student.StudentViewModelFactory
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,44 +54,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             val context = LocalContext.current
 
-            val preferences = remember(context) {
-                context.getSharedPreferences(
-                    "app_settings",
-                    Context.MODE_PRIVATE
-                )
-            }
-            val sortPreferences = remember(context) {
-                SortPreferences(context)
+            val appPreferences = remember(context) {
+                AppPreferences(context)
             }
 
-            var themeMode by remember {
-                mutableStateOf(
-                    runCatching {
-                        ThemeMode.valueOf(
-                            preferences.getString(
-                                "theme_mode",
-                                ThemeMode.SYSTEM.name
-                            )!!
-                        )
-                    }.getOrDefault(ThemeMode.SYSTEM)
-                )
-            }
+            val appSettings by appPreferences.settings.collectAsState()
 
             GradeTrackerTheme(
-                themeMode = themeMode
+                themeMode = appSettings.themeMode,
+                dynamicColor = appSettings.dynamicColors
             ) {
                 GradeTrackerApp(
-                    themeMode = themeMode,
-                    onThemeModeChange = { newMode ->
-                        themeMode = newMode
-
-                        preferences.edit {
-                            putString("theme_mode", newMode.name)
-                        }
-
-
-                    },
-                    sortPreferences = sortPreferences
+                    appSettings = appSettings,
+                    appPreferences = appPreferences
                 )
             }
         }
@@ -95,20 +75,19 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun GradeTrackerApp(
-    themeMode: ThemeMode,
-    onThemeModeChange: (ThemeMode) -> Unit,
-    sortPreferences: SortPreferences
+    appSettings: AppSettings,
+    appPreferences: AppPreferences
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val defaultSubjectSort by
-    sortPreferences.subjectSort.collectAsState()
+    val subjectSortBySchoolYear = remember {
+        mutableStateMapOf<String, SubjectSort>()
+    }
 
-    val defaultGradeSort by
-    sortPreferences.gradeSort.collectAsState()
-
-
+    val gradeSortBySubject = remember {
+        mutableStateMapOf<String, GradeSort>()
+    }
     Scaffold(
         bottomBar = {
                 GradeTrackerNavigationBar(
@@ -124,7 +103,10 @@ private fun GradeTrackerApp(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(TopLevelDestination.GRADES.route) {
-                HomeScreen(navController)
+                HomeScreen(
+                    navController = navController,
+                    gradeColorMode = appSettings.gradeColorMode
+                )
             }
             composable(TopLevelDestination.SCHEDULE.route) {
                 val context = LocalContext.current
@@ -156,7 +138,7 @@ private fun GradeTrackerApp(
             composable(TopLevelDestination.STATS.route) {
                 PlaceholderScreen(title = TopLevelDestination.STATS.label)
             }
-            composable(TopLevelDestination.SETTINGS.route) {
+            composable(MoreRoutes.SETTINGS) {
                 val context = LocalContext.current
 
                 val tokenStore: TokenStore = remember(context) {
@@ -172,7 +154,7 @@ private fun GradeTrackerApp(
                     SettingsViewModelFactory(
                         tokenStore,
                         schedulerRepository,
-                        sortPreferences
+                        appPreferences
                     )
                 }
                 val settingsViewModel: SettingsViewModel = viewModel(
@@ -181,8 +163,8 @@ private fun GradeTrackerApp(
 
                 SettingsScreen(
                     viewModel = settingsViewModel,
-                    themeMode = themeMode,
-                    onThemeModeChange = onThemeModeChange
+                    themeMode = appSettings.themeMode,
+                    onThemeModeChange = appPreferences::setThemeMode
                 )
             }
             composable(
@@ -191,10 +173,22 @@ private fun GradeTrackerApp(
                     type = NavType.StringType
                 })
             ) { entry ->
+                val schoolYearId = requireNotNull(
+                    entry.arguments?.getString("schoolYearId")
+                )
+                val currentSort =
+                    subjectSortBySchoolYear[schoolYearId]
+                        ?: appSettings.subjectSort
                 SchoolYearScreen(
                     navController = navController,
                     schoolYearId = entry.arguments?.getString("schoolYearId"),
-                    defaultSubjectSort = defaultSubjectSort
+                    defaultSubjectSort = appSettings.subjectSort,
+                    gradeColorMode = appSettings.gradeColorMode,
+                    subjectSort = currentSort,
+                    onSubjectSortChange = { newSort ->
+                        subjectSortBySchoolYear[schoolYearId] = newSort
+                    },
+
                 )
             }
             composable(
@@ -203,11 +197,57 @@ private fun GradeTrackerApp(
                     type = NavType.StringType
                 })
             ) { entry ->
+                val subjectId = requireNotNull(
+                    entry.arguments?.getString("subjectId")
+                )
+
+                val currentSort =
+                    gradeSortBySubject[subjectId]
+                        ?: appSettings.gradeSort
                 SubjectScreen(
                     navController = navController,
                     subjectId = entry.arguments?.getString("subjectId"),
-                    defaultGradeSort = defaultGradeSort
+                    defaultGradeSort = appSettings.gradeSort,
+                    gradeColorMode = appSettings.gradeColorMode,
+                    gradeSort = currentSort,
+                    onGradeSortChange = { newSort ->
+                        gradeSortBySubject[subjectId] = newSort
+                    }
                 )
+            }
+            composable(MoreRoutes.STUDENT) {
+                val context = LocalContext.current
+
+                val tokenStore: TokenStore = remember(context) {
+                    SharedPreferencesTokenStore(context)
+                }
+                val studentRepository = remember {
+                    StudentRepository(
+                        api = NetworkClient.lerbermattApi,
+                        tokenStore = tokenStore
+                    )
+                }
+                val factory = remember {
+                    StudentViewModelFactory(
+                        studentRepository
+                    )
+                }
+                val studentViewModel: StudentViewModel = viewModel(
+                    factory = factory
+                )
+                StudentScreen(
+                    studentViewModel
+                )
+            }
+
+            composable(MoreRoutes.HELP) {
+                PlaceholderScreen("Hilfe")
+            }
+            composable(MoreRoutes.ABSENCES) {
+                PlaceholderScreen("Absenzen")
+            }
+            composable(MoreRoutes.MENSA) {
+                PlaceholderScreen("Mensa")
             }
         }
     }

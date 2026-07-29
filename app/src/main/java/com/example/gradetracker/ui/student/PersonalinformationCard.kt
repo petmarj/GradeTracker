@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun PersonalinformationCard(
@@ -42,9 +44,30 @@ fun PersonalinformationCard(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                Text("Geburtstag")
+                Text(
+                    text = LocalDateTime
+                        .parse(student?.birthdate)
+                        .format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+                )
+
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Adresse")
                 Text(
                     text = student?.address?.addressLine1 + (student?.address?.addressLine2 ?: "") + ", " + student?.address?.zipCode + ", " + student?.address?.city
+                )
+
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Staatsangehörigkeit")
+                Text(
+                    text = student?.nationality ?: "-"
                 )
 
             }

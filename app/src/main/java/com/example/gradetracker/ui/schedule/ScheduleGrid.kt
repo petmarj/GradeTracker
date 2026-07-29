@@ -40,7 +40,7 @@ fun ScheduleGrid(
                     val lesson = lessonsByDay[dayOfWeek]
                         .orEmpty()
                         .firstOrNull {
-                            it.timeslot.startTime == timeSlot.startTime
+                            it.timeSlot.startTime == timeSlot.startTime
                         }
 
                     LessonCell(lesson = lesson, absences = absences, exams = exams)

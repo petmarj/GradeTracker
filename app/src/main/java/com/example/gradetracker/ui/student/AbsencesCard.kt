@@ -10,7 +10,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -66,6 +65,15 @@ fun AbsencesCard(
                 Text("Verspätungen")
                 Text(
                     text = student?.delays.toString() ?: "-"
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Halbtage")
+                Text(
+                    text = student?.halfDaysUsed.toString() + " / " + state.maxHalfdays.toString()
                 )
             }
             Row(

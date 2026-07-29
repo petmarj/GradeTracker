@@ -1,5 +1,7 @@
 package com.example.gradetracker.model
 
+import com.google.gson.annotations.SerializedName
+
 data class Absence (
     val id: Int,
     val date: String,
@@ -10,5 +12,8 @@ data class Absence (
     val state: Int,
     val type: Int,
     val parentConfirmationState: Int,
-    val timeslot: TimeSlot
+    val lesson: Lesson,
+    @SerializedName("timeslot")
+    val timeSlot: TimeSlot,
+    val parentConfirmationGuid: String
 )

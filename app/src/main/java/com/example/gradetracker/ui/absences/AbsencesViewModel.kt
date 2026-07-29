@@ -1,11 +1,9 @@
-package com.example.gradetracker.ui.student
+package com.example.gradetracker.ui.absences
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gradetracker.data.remote.TokenStore
-import com.example.gradetracker.data.repository.SchedulerRepository
 import com.example.gradetracker.data.repository.StudentRepository
-import com.example.gradetracker.ui.settings.SettingsUiState
+import com.example.gradetracker.ui.student.StudentUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,15 +13,50 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
-class StudentViewModel(
+class AbsencesViewModel(
     private val studentRepository: StudentRepository
 ): ViewModel() {
-    private val _uiState = MutableStateFlow(StudentUiState())
-    val uiState: StateFlow<StudentUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(AbsencesUiState())
+    val uiState: StateFlow<AbsencesUiState> = _uiState.asStateFlow()
     private var loadingJob: Job? = null
 
     init {
+        observeUnreadAbsences()
         getData()
+    }
+
+    private fun observeUnreadAbsences() {
+        viewModelScope.launch {
+            studentRepository.observeUnreadAbsenceIds().collect { unreadIds ->
+                _uiState.update {
+                    it.copy(unreadAbsenceIds = unreadIds)
+                }
+            }
+        }
+    }
+
+    fun markAbsenceAsRead(absenceId: Int) {
+        viewModelScope.launch {
+            studentRepository.markAbsenceAsRead(absenceId)
+        }
+    }
+
+    fun markAbsencesAsRead(absenceType: Int) {
+        val absenceIds = _uiState.value.absences
+            .orEmpty()
+            .asSequence()
+            .filter { absence -> absence.type == absenceType }
+            .map { absence -> absence.id }
+            .filter { absenceId ->
+                absenceId in _uiState.value.unreadAbsenceIds
+            }
+            .toList()
+
+        if (absenceIds.isEmpty()) return
+
+        viewModelScope.launch {
+            studentRepository.markAbsencesAsRead(absenceIds)
+        }
     }
 
     private fun getData(){
@@ -37,14 +70,12 @@ class StudentViewModel(
                 )
             }
             try {
-                val response = studentRepository.getStudentData()
-                val halfdayResponse = studentRepository.getMaxHalfdayAmount()
+                val response = studentRepository.getAbsences()
 
                 _uiState.update {
                     it.copy(
-                        student = response.data.student,
                         isLoading = false,
-                        maxHalfdays = halfdayResponse.data.amount
+                        absences = response.data.absences
                     )
                 }
             }

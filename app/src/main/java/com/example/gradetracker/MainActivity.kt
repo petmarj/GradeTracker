@@ -1,7 +1,10 @@
 package com.example.gradetracker
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
@@ -33,12 +36,20 @@ import com.example.gradetracker.ui.schedule.ScheduleScreen
 import com.example.gradetracker.ui.schoolyear.SchoolYearScreen
 import com.example.gradetracker.ui.subject.SubjectScreen
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import com.example.gradetracker.data.preferences.AppPreferences
 import com.example.gradetracker.data.preferences.AppSettings
+import com.example.gradetracker.data.local.database.DatabaseProvider
 import com.example.gradetracker.data.remote.SharedPreferencesTokenStore
 import com.example.gradetracker.data.repository.StudentRepository
+import com.example.gradetracker.domain.AbsenceNotifications
+import com.example.gradetracker.domain.scheduleAbsenceSync
+import com.example.gradetracker.domain.scheduleImmediateAbsenceSync
 import com.example.gradetracker.model.GradeSort
 import com.example.gradetracker.model.SubjectSort
+import com.example.gradetracker.ui.absences.AbsencesScreen
+import com.example.gradetracker.ui.absences.AbsencesViewModel
+import com.example.gradetracker.ui.absences.AbsencesViewModelFactory
 import com.example.gradetracker.ui.navigation.MoreRoutes
 import com.example.gradetracker.ui.settings.SettingsScreen
 import com.example.gradetracker.ui.settings.SettingsViewModel
@@ -48,6 +59,15 @@ import com.example.gradetracker.ui.student.StudentViewModel
 import com.example.gradetracker.ui.student.StudentViewModelFactory
 
 class MainActivity : ComponentActivity() {
+    private val notificationPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                scheduleImmediateAbsenceSync(applicationContext)
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -70,6 +90,20 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+
+        AbsenceNotifications.createChannel(applicationContext)
+        scheduleAbsenceSync(applicationContext)
+
+        if (
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
     }
 }
 
@@ -78,9 +112,35 @@ private fun GradeTrackerApp(
     appSettings: AppSettings,
     appPreferences: AppPreferences
 ) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val tokenStore: TokenStore = remember(context) {
+        SharedPreferencesTokenStore(context)
+    }
+    val database = remember(context) {
+        DatabaseProvider.getDatabase(context)
+    }
+    val studentRepository = remember(tokenStore, database) {
+        StudentRepository(
+            api = NetworkClient.lerbermattApi,
+            tokenStore = tokenStore,
+            knownAbsenceDao = database.knownAbsenceDao()
+        )
+    }
+    val unreadAbsenceIdsFlow = remember(database) {
+        database.knownAbsenceDao().observeUnreadIds()
+    }
+    val unreadAbsenceIds by unreadAbsenceIdsFlow.collectAsState(
+        initial = emptyList()
+    )
+    val moreRouteBadgeCounts = remember(unreadAbsenceIds) {
+        mapOf(
+            MoreRoutes.ABSENCES to unreadAbsenceIds.size
+        )
+    }
+
     val subjectSortBySchoolYear = remember {
         mutableStateMapOf<String, SubjectSort>()
     }
@@ -92,7 +152,8 @@ private fun GradeTrackerApp(
         bottomBar = {
                 GradeTrackerNavigationBar(
                     navController = navController,
-                    currentRoute = currentRoute
+                    currentRoute = currentRoute,
+                    moreRouteBadgeCounts = moreRouteBadgeCounts
                 )
 
         }
@@ -216,17 +277,6 @@ private fun GradeTrackerApp(
                 )
             }
             composable(MoreRoutes.STUDENT) {
-                val context = LocalContext.current
-
-                val tokenStore: TokenStore = remember(context) {
-                    SharedPreferencesTokenStore(context)
-                }
-                val studentRepository = remember {
-                    StudentRepository(
-                        api = NetworkClient.lerbermattApi,
-                        tokenStore = tokenStore
-                    )
-                }
                 val factory = remember {
                     StudentViewModelFactory(
                         studentRepository
@@ -244,7 +294,17 @@ private fun GradeTrackerApp(
                 PlaceholderScreen("Hilfe")
             }
             composable(MoreRoutes.ABSENCES) {
-                PlaceholderScreen("Absenzen")
+                val factory = remember {
+                    AbsencesViewModelFactory(
+                        studentRepository
+                    )
+                }
+                val absencesViewModel: AbsencesViewModel = viewModel(
+                    factory = factory
+                )
+                AbsencesScreen(
+                    viewModel = absencesViewModel
+                )
             }
             composable(MoreRoutes.MENSA) {
                 PlaceholderScreen("Mensa")

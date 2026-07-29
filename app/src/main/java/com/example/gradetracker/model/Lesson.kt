@@ -1,6 +1,7 @@
 package com.example.gradetracker.model
 
 import androidx.compose.ui.graphics.Color
+import com.google.gson.annotations.SerializedName
 
 data class Lesson (
     val id: Int,
@@ -10,7 +11,8 @@ data class Lesson (
     val isCancelled: Boolean,
     val subject: LessonSubject,
     val teacher: Teacher,
-    val timeslot: TimeSlot,
+    @SerializedName("timeslot")
+    val timeSlot: TimeSlot,
     val lessonRooms: List<LessonRoom>,
     val exams: List<Exam>?
     ){
@@ -77,7 +79,7 @@ fun getLessonVisualState(
 
     val hasAbsence = absences.any { absence ->
         absence.date == lesson.date &&
-                absence.timeslot.id == lesson.timeslot.id
+                absence.timeSlot.id == lesson.timeSlot.id
     }
 
     return LessonVisualState(

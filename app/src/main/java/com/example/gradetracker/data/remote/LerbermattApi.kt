@@ -1,6 +1,9 @@
 package com.example.gradetracker.data.remote
 
 
+import com.example.gradetracker.data.remote.model.AbsencesRequest
+import com.example.gradetracker.data.remote.model.AbsencesResponse
+import com.example.gradetracker.data.remote.model.MaxHalfdayResponse
 import com.example.gradetracker.data.remote.model.SchedulerRequest
 import com.example.gradetracker.data.remote.model.SchedulerResponse
 import com.example.gradetracker.data.remote.model.StudentResponse
@@ -25,4 +28,17 @@ interface LerbermattApi {
     suspend fun getStudent(
         @Header("Authorization") authorization: String,
     ): Response<StudentResponse>
+
+    @Headers("Accept: application/json")
+    @POST("Student/MaxHalfdayAmount")
+    suspend fun getMaxHalfdayAmount(
+        @Header("Authorization") authorization: String,
+        @Body request: Map<String, String>
+    ): Response<MaxHalfdayResponse>
+    @Headers("Accept: application/json")
+    @POST("Absence/List")
+    suspend fun getAbsences(
+        @Header("Authorization") authorization: String,
+        @Body request: AbsencesRequest
+    ): Response<AbsencesResponse>
 }

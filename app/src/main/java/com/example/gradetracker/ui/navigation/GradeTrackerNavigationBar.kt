@@ -23,6 +23,8 @@ import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -80,7 +82,8 @@ object MoreRoutes {
 @Composable
 fun GradeTrackerNavigationBar(
     navController: NavHostController,
-    currentRoute: String?
+    currentRoute: String?,
+    moreRouteBadgeCounts: Map<String, Int> = emptyMap()
 ) {
     var moreMenuExpanded by remember {
         mutableStateOf(false)
@@ -93,6 +96,9 @@ fun GradeTrackerNavigationBar(
         MoreRoutes.ABSENCES,
         MoreRoutes.MENSA
     )
+    val moreBadgeCount = moreRouteBadgeCounts.values.sumOf { count ->
+        count.coerceAtLeast(0)
+    }
 
     fun navigateTo(route: String) {
         navController.navigate(route) {
@@ -144,10 +150,16 @@ fun GradeTrackerNavigationBar(
                 moreMenuExpanded = true
             },
             icon = {
-                Icon(
-                    imageVector = Icons.Filled.MoreHoriz,
-                    contentDescription = "Mehr"
-                )
+                BadgedBox(
+                    badge = {
+                        NotificationCountBadge(moreBadgeCount)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreHoriz,
+                        contentDescription = "Mehr"
+                    )
+                }
             },
             label = {
                 Text("Mehr")
@@ -206,6 +218,11 @@ fun GradeTrackerNavigationBar(
                                 contentDescription = null
                             )
                         },
+                        trailingContent = {
+                            NotificationCountBadge(
+                                moreRouteBadgeCounts[MoreRoutes.ABSENCES] ?: 0
+                            )
+                        },
                         modifier = Modifier.clickable {
                             moreMenuExpanded = false
                             navigateTo(MoreRoutes.ABSENCES)
@@ -252,5 +269,16 @@ fun GradeTrackerNavigationBar(
             }
 
         }
+    }
+}
+
+@Composable
+private fun NotificationCountBadge(count: Int) {
+    if (count <= 0) return
+
+    Badge {
+        Text(
+            text = if (count > 99) "99+" else count.toString()
+        )
     }
 }

@@ -24,7 +24,8 @@ data class Student(
     val classStr: String,
     val mint: Boolean,
     val musicalInstrument: String,
-    val additionalLanguage: String
+    val additionalLanguage: String,
+    val birthdate: String
 )
 
 

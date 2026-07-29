@@ -6,7 +6,7 @@ import com.example.gradetracker.model.Student
 
 data class StudentUiState(
     val student: Student? = null,
-    val studentPicture: Picture? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val maxHalfdays: Int? = null
 )

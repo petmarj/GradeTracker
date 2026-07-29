@@ -38,41 +38,82 @@ fun CoursesCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Schwerpunkt")
-                    Text(
-                        text = student?.majorSubject ?: "-"
-                    )
+                if (student?.majorSubject != null) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Schwerpunkt")
+                        Text(
+                            text = student.majorSubject
+                        )
+                    }
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Ergänzungsfach")
-                    Text(
-                        text = student?.supplementarySubject ?: "-"
-                    )
+                if (student?.supplementarySubject != "") {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Ergänzungsfach")
+                        Text(
+                            text = student?.supplementarySubject ?: "-"
+                        )
+                    }
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Kunstfach")
-                    Text(
-                        text = student?.artSubject ?: "-"
-                    )
+                if (student?.artSubject != "") {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Kunstfach")
+                        Text(
+                            text = student?.artSubject ?: "-"
+                        )
+                    }
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Dritte Sprache")
-                    Text(
-                        text = student?.thirdLanguage ?: "-"
-                    )
+                if (student?.thirdLanguage != "") {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Dritte Sprache")
+                        Text(
+                            text = student?.thirdLanguage ?: "-"
+                        )
+                    }
+                }
+                if (student?.mint == true) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("MINT")
+                        Text(
+                            text = "Ja"
+                        )
+                    }
+                }
+                if (student?.musicalInstrument != "") {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Musikinstrument")
+                        Text(
+                            text = student?.musicalInstrument ?: "-"
+                        )
+                    }
+                }
+                if (student?.additionalLanguage != "") {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Zusätzliche Sprache")
+                        Text(
+                            text = student?.additionalLanguage ?: "-"
+                        )
+                    }
                 }
             }
         }

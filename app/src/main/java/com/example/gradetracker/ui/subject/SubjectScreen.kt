@@ -1,12 +1,16 @@
 package com.example.gradetracker.ui.subject
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -20,9 +24,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -35,8 +44,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
@@ -105,7 +117,7 @@ fun SubjectScreen(
 
         Row(
             horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(50.dp),
             verticalAlignment = Alignment.Bottom
         ) {
             Text(
@@ -234,7 +246,7 @@ fun SubjectScreen(
                 }
             }
 
-            Button(
+            FloatingActionButton(
                 onClick = {
                     showDialog = true
                     triedToSave = false
@@ -242,10 +254,14 @@ fun SubjectScreen(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(16.dp)
-                ) {
-                Text("+ Note")
+                )
+            {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add",
+                )
             }
-            Button(
+            FloatingActionButton(
                 onClick = {
                     showWishGrade = true
                     triedToCalculate = false
@@ -254,7 +270,10 @@ fun SubjectScreen(
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)
             ) {
-                Text("Wunschnote")
+                Icon(
+                    imageVector = Icons.Filled.Calculate,
+                    contentDescription = "Calculate",
+                )
             }
 
             if (showDialog) {
@@ -420,24 +439,32 @@ fun SubjectScreen(
                         neededGrade = null
                     },
                     title = {
-                        Text("Wunschnotenrechner")
+                        Text(
+                            text ="Wunschnotenrechner",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                     },
                     text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             OutlinedTextField(
                                 value = wishGradeValue,
                                 onValueChange = {
                                      wishGradeValue = it
+                                     triedToCalculate = false
                                 },
                                 label = {
                                     Text("Wunschnote")
                                 },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                isError = triedToCalculate && wishGradeValue.isBlank(),
+                                isError = triedToCalculate && (wishGradeValue.isBlank() || !gradeIsValid),
                                 supportingText = {
                                     if (triedToCalculate && wishGradeValue.isBlank()) {
                                         Text("Bitte Wunschnote eingeben")
+                                    }
+                                    else if (triedToCalculate && !gradeIsValid) {
+                                        Text("Bitte gültige Note eingeben")
                                     }
                                 }
                             )
@@ -445,9 +472,10 @@ fun SubjectScreen(
                                 value = wishGradeWeight,
                                 onValueChange = {
                                     wishGradeWeight = it
+                                    triedToCalculate = false
                                 },
                                 label = {
-                                    Text("Benötigte Note Gewicht")
+                                    Text("Gewicht")
                                 },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -458,71 +486,71 @@ fun SubjectScreen(
                                     }
                                 }
                             )
-                            OutlinedTextField(
-                                readOnly = true,
-                                label = {
-                                    Text(
-                                        text = "Benötigt",
-                                        maxLines = 1
-                                    )
-                                },
-                                value =  if(neededGrade == null) {
-                                    ""
-                                } else {
-                                    roundToHundred(neededGrade).toString()
-                                } ,
-                                onValueChange = {},
-                                isError = neededGrade?.let { it !in 1.0..6.0 } ?: false,
-                                supportingText = {
 
-                                    /*if (neededGrade?.let { it !in 1.0..6.0 } == true) {
-                                        Text(
-                                            text = "Nicht erreichbar",
-                                            maxLines = 1
-                                        )
-                                    }*/
+                            ElevatedCard(
 
-                                },
-                                modifier = Modifier.width(130.dp).fillMaxWidth().align(Alignment.End)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                modifier = Modifier.fillMaxWidth()
 
                             ) {
-                                TextButton(
-                                    onClick = {
-                                        showWishGrade = false
-                                        wishGradeValue = ""
-                                        wishGradeWeight = "1.0"
-                                        triedToCalculate = false
-                                        neededGrade = null
-                                    }
+                                Row(
+                                    modifier = Modifier.padding(16.dp)
                                 ) {
-                                    Text("Schliessen")
-                                }
-                                Button(
-                                    onClick = {
-                                        triedToCalculate = true
-                                        if (gradeIsValid && weightIsValid) {
-                                            neededGrade = Calculator.neededGradeForGoal(
-                                                grades = grades,
-                                                goal = wishGradeValue.toDouble(),
-                                                weight = wishGradeWeight.toDouble()
-                                            )
-
+                                    Text(
+                                        text = "Benötigte Note: "
+                                    )
+                                    Text(
+                                        text = if(neededGrade == null) {
+                                                    ""
+                                                } else {
+                                                    roundToHundred(neededGrade).toString()
+                                                },
+                                        fontWeight = FontWeight.Bold,
+                                        color = if(neededGrade?.let { it !in 1.0..6.0 } ?: false){
+                                            Color.Red
+                                        } else {
+                                            Color.Unspecified
                                         }
-                                    }
-                                ) {
-                                    Text("Ausrechnen")
+                                    )
                                 }
-
                             }
+
                         }
                     },
                     confirmButton = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
 
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    showWishGrade = false
+                                    wishGradeValue = ""
+                                    wishGradeWeight = "1.0"
+                                    triedToCalculate = false
+                                    neededGrade = null
+                                }
+                            ) {
+                                Text("Schliessen")
+                            }
+                            Button(
+                                onClick = {
+                                    triedToCalculate = true
+                                    if (gradeIsValid && weightIsValid) {
+                                        neededGrade = Calculator.neededGradeForGoal(
+                                            grades = grades,
+                                            goal = wishGradeValue.toDouble(),
+                                            weight = wishGradeWeight.toDouble()
+                                        )
+
+                                    }
+                                }
+                            ) {
+                                Text("Ausrechnen")
+                            }
+
+                        }
                     }
                 )
             }

@@ -9,4 +9,5 @@ data class AbsencesUiState(
     val unreadAbsenceIds: Set<Int> = emptySet(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val isRefreshing: Boolean = false
 )

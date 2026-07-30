@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -20,9 +21,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TextSnippet
 import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +47,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.FloatingWindow
 import com.example.gradetracker.domain.Calculator
 import com.example.gradetracker.domain.Calculator.roundToHundred
 import kotlin.collections.emptyList
@@ -97,7 +101,7 @@ fun SchoolYearScreen(
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(50.dp),
             verticalAlignment = Alignment.Bottom
         ) {
             Row(
@@ -252,7 +256,7 @@ fun SchoolYearScreen(
                 }
             }
 
-            Button(
+            FloatingActionButton(
                 onClick = {
                     showDialog = true
                     triedToSave = false
@@ -261,7 +265,10 @@ fun SchoolYearScreen(
                     .align(Alignment.BottomStart)
                     .padding(16.dp)
             ) {
-                Text("+ Fach")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add",
+                )
             }
 
             if (showDialog) {

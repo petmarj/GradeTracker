@@ -59,13 +59,14 @@ class AbsencesViewModel(
         }
     }
 
-    private fun getData(){
+     fun getData(isRefresh: Boolean = false){
         loadingJob?.cancel()
 
         loadingJob = viewModelScope.launch{
             _uiState.update {
                 it.copy(
                     isLoading = true,
+                    isRefreshing = isRefresh,
                     errorMessage = null
                 )
             }
@@ -75,12 +76,13 @@ class AbsencesViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        absences = response.data.absences
+                        absences = response.data.absences,
+                        isRefreshing = false
                     )
                 }
             }
             catch (exception: IOException) {
-                showError("Keine Verbindung zur API.")
+                showError("Keine Internetverbindung")
             } catch (exception: HttpException) {
                 val message = when (exception.code()) {
                     401 -> "Token ist ungültig oder abgelaufen."
@@ -100,6 +102,7 @@ class AbsencesViewModel(
         _uiState.update {
             it.copy(
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = message
             )
         }

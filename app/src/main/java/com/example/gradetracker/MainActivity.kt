@@ -50,6 +50,8 @@ import com.example.gradetracker.model.SubjectSort
 import com.example.gradetracker.ui.absences.AbsencesScreen
 import com.example.gradetracker.ui.absences.AbsencesViewModel
 import com.example.gradetracker.ui.absences.AbsencesViewModelFactory
+import com.example.gradetracker.ui.absences.AbsenceRoutes
+import com.example.gradetracker.ui.absences.AbsenceWebsiteRoute
 import com.example.gradetracker.ui.navigation.MoreRoutes
 import com.example.gradetracker.ui.settings.SettingsScreen
 import com.example.gradetracker.ui.settings.SettingsViewModel
@@ -57,7 +59,7 @@ import com.example.gradetracker.ui.settings.SettingsViewModelFactory
 import com.example.gradetracker.ui.student.StudentScreen
 import com.example.gradetracker.ui.student.StudentViewModel
 import com.example.gradetracker.ui.student.StudentViewModelFactory
-
+import androidx.compose.foundation.layout.consumeWindowInsets
 class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher =
         registerForActivityResult(
@@ -150,12 +152,13 @@ private fun GradeTrackerApp(
     }
     Scaffold(
         bottomBar = {
+            if (currentRoute != AbsenceRoutes.WEBSITE) {
                 GradeTrackerNavigationBar(
                     navController = navController,
                     currentRoute = currentRoute,
                     moreRouteBadgeCounts = moreRouteBadgeCounts
                 )
-
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -303,11 +306,36 @@ private fun GradeTrackerApp(
                     factory = factory
                 )
                 AbsencesScreen(
-                    viewModel = absencesViewModel
+                    viewModel = absencesViewModel,
+                    onOpenWebsite = { absenceId ->
+                        navController.navigate(
+                            AbsenceRoutes.website(absenceId)
+                        )
+                    }
                 )
             }
             composable(MoreRoutes.MENSA) {
                 PlaceholderScreen("Mensa")
+            }
+
+            composable(
+                route = AbsenceRoutes.WEBSITE,
+                arguments = listOf(navArgument("absenceId") {
+                    type = NavType.IntType
+                })
+            ) { entry ->
+                val absenceId = requireNotNull(
+                    entry.arguments?.getInt("absenceId")
+                )
+
+                AbsenceWebsiteRoute(
+                    absenceId = absenceId,
+                    tokenStore = tokenStore,
+                    studentRepository = studentRepository,
+                    onClose = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }

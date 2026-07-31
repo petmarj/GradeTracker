@@ -500,7 +500,7 @@ fun SubjectScreen(
                                     )
                                     Text(
                                         text = if(neededGrade == null) {
-                                                    ""
+                                                    "-.-"
                                                 } else {
                                                     roundToHundred(neededGrade).toString()
                                                 },

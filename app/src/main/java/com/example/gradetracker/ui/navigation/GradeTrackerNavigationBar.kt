@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Settings
@@ -77,6 +78,7 @@ object MoreRoutes {
     const val HELP = "helpScreen"
     const val ABSENCES = "Absenzen"
     const val MENSA = "Mensa"
+    const val TIMETABLES = "Stundenpläne"
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +96,8 @@ fun GradeTrackerNavigationBar(
         MoreRoutes.HELP,
         MoreRoutes.SETTINGS,
         MoreRoutes.ABSENCES,
-        MoreRoutes.MENSA
+        MoreRoutes.MENSA,
+        MoreRoutes.TIMETABLES
     )
     val moreBadgeCount = moreRouteBadgeCounts.values.sumOf { count ->
         count.coerceAtLeast(0)
@@ -195,22 +198,6 @@ fun GradeTrackerNavigationBar(
                         colors = ListItemDefaults.colors(
                             containerColor = Color.Transparent
                         ),
-                        headlineContent = { Text("Mensa") },
-                        leadingContent = {
-                            Icon(
-                                imageVector = Icons.Outlined.Restaurant,
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            moreMenuExpanded = false
-                            navigateTo(MoreRoutes.MENSA)
-                        }
-                    )
-                    ListItem(
-                        colors = ListItemDefaults.colors(
-                            containerColor = Color.Transparent
-                        ),
                         headlineContent = { Text("Absenzen") },
                         leadingContent = {
                             Icon(
@@ -228,7 +215,38 @@ fun GradeTrackerNavigationBar(
                             navigateTo(MoreRoutes.ABSENCES)
                         }
                     )
-
+                    ListItem(
+                        colors = ListItemDefaults.colors(
+                            containerColor = Color.Transparent
+                        ),
+                        headlineContent = { Text("Mensa") },
+                        leadingContent = {
+                            Icon(
+                                imageVector = Icons.Outlined.Restaurant,
+                                contentDescription = null
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            moreMenuExpanded = false
+                            navigateTo(MoreRoutes.MENSA)
+                        }
+                    )
+                    ListItem(
+                        colors = ListItemDefaults.colors(
+                            containerColor = Color.Transparent
+                        ),
+                        headlineContent = { Text("Alle Stundenpläne") },
+                        leadingContent = {
+                            Icon(
+                                imageVector = Icons.Outlined.CalendarToday,
+                                contentDescription = null
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            moreMenuExpanded = false
+                            navigateTo(MoreRoutes.TIMETABLES)
+                        }
+                    )
                     ListItem(
                         colors = ListItemDefaults.colors(
                             containerColor = Color.Transparent

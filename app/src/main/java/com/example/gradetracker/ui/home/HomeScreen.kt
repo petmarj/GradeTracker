@@ -93,7 +93,8 @@ fun HomeScreen(
                 .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                items(schoolYears) { schoolYear ->
+                val sortedSchoolYears = schoolYears.sortedBy { it.name }
+                items(sortedSchoolYears) { schoolYear ->
 
                     SchoolYearCard(
                         schoolYear = schoolYear,

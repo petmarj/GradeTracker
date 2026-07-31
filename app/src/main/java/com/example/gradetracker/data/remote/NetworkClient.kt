@@ -6,14 +6,25 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object NetworkClient {
 
-    private const val BASE_URL =
+    private const val ABSENCE_BASE_URL =
         "https://absenzen.lerbermatt.ch/api/v1/"
+
+    private const val PUBLIC_BASE_URL =
+        "https://lerbermatt.ch/"
 
     val lerbermattApi: LerbermattApi by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(ABSENCE_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(LerbermattApi::class.java)
+    }
+
+    val publicApi: LerbermattPublicApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(PUBLIC_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(LerbermattPublicApi::class.java)
     }
 }

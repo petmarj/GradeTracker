@@ -60,6 +60,11 @@ import com.example.gradetracker.ui.student.StudentScreen
 import com.example.gradetracker.ui.student.StudentViewModel
 import com.example.gradetracker.ui.student.StudentViewModelFactory
 import androidx.compose.foundation.layout.consumeWindowInsets
+import com.example.gradetracker.data.repository.LerbermattRepository
+import com.example.gradetracker.ui.timetables.TimetablesScreen
+import com.example.gradetracker.ui.timetables.TimetablesViewModel
+import com.example.gradetracker.ui.timetables.TimetablesViewModelFactory
+
 class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher =
         registerForActivityResult(
@@ -129,6 +134,11 @@ private fun GradeTrackerApp(
             api = NetworkClient.lerbermattApi,
             tokenStore = tokenStore,
             knownAbsenceDao = database.knownAbsenceDao()
+        )
+    }
+    val lerbermattRepository = remember {
+        LerbermattRepository(
+            api = NetworkClient.publicApi,
         )
     }
     val unreadAbsenceIdsFlow = remember(database) {
@@ -316,6 +326,22 @@ private fun GradeTrackerApp(
             }
             composable(MoreRoutes.MENSA) {
                 PlaceholderScreen("Mensa")
+            }
+
+            composable(MoreRoutes.TIMETABLES) {
+
+
+                val factory = remember {
+                    TimetablesViewModelFactory(
+                        lerbermattRepository = lerbermattRepository
+                    )
+                }
+                val timetablesViewModel: TimetablesViewModel = viewModel(
+                    factory = factory
+                )
+                TimetablesScreen(
+                    viewModel = timetablesViewModel
+                )
             }
 
             composable(

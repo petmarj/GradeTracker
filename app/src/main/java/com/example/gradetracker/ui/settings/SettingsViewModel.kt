@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.gradetracker.data.preferences.AppPreferences
 import com.example.gradetracker.data.remote.TokenStore
 import com.example.gradetracker.data.repository.SchedulerRepository
+import com.example.gradetracker.data.repository.StudentRepository
 import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.GradeSort
 import com.example.gradetracker.model.SubjectSort
@@ -24,7 +25,7 @@ import java.time.temporal.TemporalAdjusters
 
 class SettingsViewModel(
     private val tokenStore: TokenStore,
-    private val schedulerRepository: SchedulerRepository,
+    private val studentRepository: StudentRepository,
     private val appPreferences: AppPreferences
 ) : ViewModel() {
 
@@ -33,7 +34,7 @@ class SettingsViewModel(
 
     init {
         checkToken()
-        testConnection()
+        //testConnection()
         viewModelScope.launch {
             appPreferences.settings.collect { settings ->
                 _uiState.update {
@@ -52,7 +53,7 @@ class SettingsViewModel(
             val token = tokenStore.getToken()
 
             _uiState.update {
-                it.copy(tokenConfigured = !token.isNullOrBlank())
+                it.copy(loggedIn = !token.isNullOrBlank())
             }
         }
     }
@@ -75,95 +76,104 @@ class SettingsViewModel(
             tokenStore.saveToken(token)
             _uiState.update {
                 it.copy(
-                    tokenConfigured = true,
+                    loggedIn = true,
                     connectionState = ConnectionState.NotTested
                 )
 
             }
-            testConnection()
+            //testConnection()
         }
 
 
     }
-     fun deleteToken(){
-         CoroutineScope(
-             Dispatchers.IO
-         ).launch {
-             tokenStore.clearToken()
-             _uiState.update {
-                 it.copy(
-                     tokenConfigured = false,
-                     connectionState = ConnectionState.MissingToken
-                 )
-             }
-         }
 
 
-    }
-
-    fun testConnection() {
-        viewModelScope.launch {
-            val token = tokenStore.getToken()
-
-            if (token.isNullOrBlank()) {
-                _uiState.update {
-                    it.copy(
-                        tokenConfigured = false,
-                        connectionState = ConnectionState.MissingToken
-                    )
-                }
-                return@launch
-            }
-
+    fun login(username: String, password: String) {
+        val cleanUsername = username.trim()
+        if (cleanUsername.isBlank() || password.isBlank()) {
             _uiState.update {
-                it.copy(connectionState = ConnectionState.Testing)
+                it.copy(
+                    connectionState = ConnectionState.Failed(
+                        "Benutzername und Passwort sind erforderlich."
+                    )
+                )
             }
+            return
+        }
+        if (_uiState.value.connectionState == ConnectionState.Testing) {
+            return
+        }
 
-            val zone = ZoneId.of("Europe/Zurich")
-            val today = LocalDate.now(zone)
-
-            val monday = today.with(
-                TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
-            )
-            val friday = monday.plusDays(4)
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    connectionState = ConnectionState.Testing
+                )
+            }
 
             try {
-                schedulerRepository.getSchedule(
-                    from = monday.toString(),
-                    to = friday.toString()
+                val response = studentRepository.login(
+                    username = cleanUsername,
+                    password = password
                 )
 
+                val token = response.data.jwtToken
+                    .trim()
+                    .takeIf { it.isNotEmpty() }
+                    ?: throw IllegalStateException(
+                        "Die API hat keinen Login-Token geliefert."
+                    )
+
+                tokenStore.saveToken(token)
+
+
                 _uiState.update {
-                    it.copy(connectionState = ConnectionState.Connected)
+                    it.copy(
+                        loggedIn = true,
+                        connectionState = ConnectionState.Connected,
+                        user = response.data.user
+                    )
                 }
             } catch (exception: HttpException) {
                 val message = when (exception.code()) {
-                    401 -> "Token ist ungültig oder abgelaufen"
-                    403 -> "Zugriff wurde verweigert"
-                    else -> "API Fehler, HTTP ERROR: ${exception.code()}"
+                    400, 401 ->
+                        "Benutzername oder Passwort ist falsch."
+
+                    403 ->
+                        "Der Zugriff wurde verweigert."
+
+                    else ->
+                        "Login fehlgeschlagen (HTTP ${exception.code()})."
                 }
 
                 _uiState.update {
-                    it.copy(connectionState = ConnectionState.Failed(message))
+                    it.copy(
+                        loggedIn = false,
+                        connectionState = ConnectionState.Failed(message)
+                    )
                 }
             } catch (exception: IOException) {
                 _uiState.update {
                     it.copy(
+                        loggedIn = false,
                         connectionState = ConnectionState.Failed(
-                            "Verbindung konnte nicht hergestellt werden"
+                            "Keine Verbindung zum Absenzensystem."
                         )
                     )
                 }
             } catch (exception: Exception) {
                 _uiState.update {
                     it.copy(
+                        loggedIn = false,
                         connectionState = ConnectionState.Failed(
                             exception.message
-                                ?: "Ein unbekannter Fehler ist aufgetreten"
+                                ?: "Der Login ist fehlgeschlagen."
                         )
                     )
                 }
             }
         }
+
+
     }
 }

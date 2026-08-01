@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -38,8 +39,8 @@ import androidx.compose.ui.unit.dp
 fun ApiConnectionCard(
     state: SettingsUiState,
     onTestConnection: () -> Unit,
-    onAddToken: () -> Unit,
-    onDeleteToken: () -> Unit
+    onLogin: () -> Unit,
+    onLogout: () -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
@@ -50,65 +51,46 @@ fun ApiConnectionCard(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Lerbermatt API  ",
+                    text = "Absenzensystem ",
                     style = MaterialTheme.typography.titleLarge
                 )
                 ConnectionStatusLed(connectionState = state.connectionState)
             }
             HorizontalDivider(thickness = 2.dp)
-            when (val connection = state.connectionState) {
-                ConnectionState.NotTested ->
-                    if (!state.tokenConfigured) {
-                        Text("Kein Token hinzugefügt")
-                    }
+            Text(
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                text =  when (val connection = state.connectionState) {
+                    ConnectionState.NotTested -> "Bitte Testen"
 
-                ConnectionState.Testing -> {}
+                    ConnectionState.Testing -> "Am testen.."
 
-                ConnectionState.Connected ->{}
+                    ConnectionState.Connected -> state.user?.firstname + " " + state.user?.lastname
 
-                ConnectionState.MissingToken -> Text("Token nicht vorhanden")
+                    ConnectionState.NotLoggedIn -> "Bitte Anmelden"
 
-                is ConnectionState.Failed -> Text(connection.message)
-            }
+                    is ConnectionState.Failed -> connection.message
+                }
+            )
+
 
             Row() {
-                Button(
-                    onClick = onTestConnection,
-                    enabled = state.connectionState != ConnectionState.Testing
-                ) {
-                    if (state.connectionState == ConnectionState.Testing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-
-                        Spacer(Modifier.width(8.dp))
-                        Text("Testen...")
-                    }
-
-                    Text("Verbindung testen")
-                }
-                OutlinedButton(
-                    onClick = onAddToken
-                ) {
-                    Text(
-                        text = if(state.tokenConfigured){
-                                "Token ändern"
-                            } else{
-                                "Token hinzufügen"
-                            },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                if(state.tokenConfigured){
-                    IconButton(
-                        onClick = onDeleteToken
+                if (!state.loggedIn){
+                    Button(
+                        onClick = onLogin,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.DeleteForever,
-                            contentDescription = "Delete",
+                        Text(
+                            text = "Im Absenzensystem anmelden",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
+                    }
+                } else {
+                    Button(
+                        onClick = onTestConnection
+                    ) {
+                        Text("Verbindung testen")
                     }
                 }
             }
@@ -130,8 +112,8 @@ private fun ConnectionStatusLed(
         ConnectionState.Connected ->
             Color(0xFF4CAF50)
 
-        ConnectionState.MissingToken ->
-            Color(0xFFFF0000)
+        ConnectionState.NotLoggedIn ->
+            Color(0xFFFF9900)
 
         is ConnectionState.Failed ->
             Color(0xFFFF0000)

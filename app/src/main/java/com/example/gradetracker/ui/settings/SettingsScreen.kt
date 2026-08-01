@@ -9,6 +9,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +30,7 @@ fun SettingsScreen(
     onThemeModeChange: (ThemeMode) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
-    var showTokenMenu by remember{mutableStateOf(false) }
+    var showLoginMenu by remember{mutableStateOf(false) }
     var tokenString by remember{mutableStateOf("") }
 
     LazyColumn(
@@ -50,11 +51,9 @@ fun SettingsScreen(
         item {
             ApiConnectionCard(
                 state = state,
-                onTestConnection = viewModel::testConnection,
-                onAddToken = {showTokenMenu = true},
-                onDeleteToken = {
-                    viewModel.deleteToken()
-                }
+                onTestConnection = {},
+                onLogin = {showLoginMenu = true},
+                onLogout = {}
             )
         }
 
@@ -99,50 +98,13 @@ fun SettingsScreen(
         }
     }
 
-    if(showTokenMenu){
-        AlertDialog(
-            onDismissRequest = {
-                showTokenMenu = false
+    if(showLoginMenu){
+        LoginBottomSheet(
+            state = state,
+            onDismiss = {
+                showLoginMenu = false
             },
-            title = {Text("Token speichern")},
-            text = {
-                OutlinedTextField(
-                    value = tokenString,
-                    label = {
-                        Text("Token")
-                    },
-                    onValueChange = {
-                        tokenString = it
-                    }
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = if (tokenString.isNotBlank()){
-                        {
-                            viewModel.storeToken(tokenString)
-                            showTokenMenu = false
-                            tokenString = ""
-                        }
-                    } else {
-                        {}
-                    }
-                )
-                {
-                    Text("Speichern")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = {
-                        showTokenMenu = false
-                        tokenString = ""
-                    }
-                ) {
-                    Text("Abbrechen")
-                }
-            }
-
+            onLogin = viewModel::login
         )
     }
 }

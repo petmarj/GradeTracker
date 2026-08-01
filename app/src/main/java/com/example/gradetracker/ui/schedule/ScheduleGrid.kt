@@ -19,7 +19,8 @@ fun ScheduleGrid(
     weekStart: LocalDate,
     lessonsByDay: Map<Int, List<Lesson>>,
     absences: List<Absence>,
-    exams: List<Exam>
+    exams: List<Exam>,
+    onClick: (Lesson) -> Unit
 ) {
     val horizontalScrollState = rememberScrollState()
     val verticalScrollState = rememberScrollState()
@@ -43,7 +44,7 @@ fun ScheduleGrid(
                             it.timeSlot.startTime == timeSlot.startTime
                         }
 
-                    LessonCell(lesson = lesson, absences = absences, exams = exams)
+                    LessonCell(lesson = lesson, absences = absences, exams = exams, onClick = onClick)
                 }
             }
         }

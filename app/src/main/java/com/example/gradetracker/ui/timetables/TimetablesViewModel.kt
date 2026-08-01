@@ -40,7 +40,7 @@ class TimetablesViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        timetableLinks = response.timetableLinks
+                        timetableLinks = response
                     )
                 }
             }

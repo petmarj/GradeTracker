@@ -2,7 +2,6 @@ package com.example.gradetracker.model
 
 import com.google.gson.annotations.SerializedName
 
-
 data class LessonRoom(
     val lessonId: Int,
     val roomId: Int,
@@ -11,7 +10,7 @@ data class LessonRoom(
 data class Room (
     val id: Int,
     @SerializedName("text")
-    val commandingTeacher: String,
+    val commandingTeacher: String?,
     val namedId: String,
     @SerializedName("longname")
     val subjectName: String

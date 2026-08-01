@@ -5,10 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.gradetracker.data.preferences.AppPreferences
 import com.example.gradetracker.data.remote.TokenStore
 import com.example.gradetracker.data.repository.SchedulerRepository
+import com.example.gradetracker.data.repository.StudentRepository
 
 class SettingsViewModelFactory(
     private val tokenStore: TokenStore,
-    private val schedulerRepository: SchedulerRepository,
+    private val studentRepository: StudentRepository,
     private val appPreferences: AppPreferences
 ) : ViewModelProvider.Factory {
 
@@ -19,7 +20,7 @@ class SettingsViewModelFactory(
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
             return SettingsViewModel(
                 tokenStore,
-                schedulerRepository,
+                studentRepository,
                 appPreferences,
             ) as T
         }

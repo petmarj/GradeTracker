@@ -3,6 +3,7 @@ package com.example.gradetracker.ui.schedule
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,8 @@ import com.example.gradetracker.model.getLessonVisualState
 fun LessonCell(
     lesson: Lesson?,
     absences: List<Absence>,
-    exams: List<Exam>
+    exams: List<Exam>,
+    onClick: (Lesson) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -76,7 +78,10 @@ fun LessonCell(
                 modifier = Modifier.fillMaxSize().semantics {
                     contentDescription =
                         "${lesson.subject.name}, $statusDescription"
-                },
+                }
+                    .combinedClickable(
+                        onClick = { onClick(lesson) }
+                    ),
                 color = colors.background,
                 shape = RoundedCornerShape(5.dp),
                 border = BorderStroke(
@@ -131,7 +136,8 @@ fun LessonCell(
                     LessonCornerMarkers(
                         hasExam = visualState.hasExam,
                         hasAbsence = visualState.hasAbsence,
-                        modifier = Modifier.matchParentSize()
+                        modifier = Modifier.matchParentSize(),
+                        absenceIsUnplanned = visualState.absenceIsUnplanned
                     )
 
             }
@@ -143,6 +149,7 @@ fun LessonCell(
 private fun LessonCornerMarkers(
     hasExam: Boolean,
     hasAbsence: Boolean,
+    absenceIsUnplanned: Boolean,
     modifier: Modifier = Modifier
 ) {
     Canvas(modifier = modifier) {
@@ -162,7 +169,7 @@ private fun LessonCornerMarkers(
             )
         }
 
-        if (hasAbsence) {
+        if (hasAbsence && !absenceIsUnplanned) {
             val absenceCorner = Path().apply {
                 moveTo(size.width, size.height - cornerSize)
                 lineTo(size.width, size.height)
@@ -173,6 +180,20 @@ private fun LessonCornerMarkers(
             drawPath(
                 path = absenceCorner,
                 color = Color(0xFF045fcf)
+            )
+        }
+
+        if (hasAbsence && absenceIsUnplanned) {
+            val absenceCorner = Path().apply {
+                moveTo(size.width, size.height - cornerSize)
+                lineTo(size.width, size.height)
+                lineTo(size.width - cornerSize, size.height)
+                close()
+            }
+
+            drawPath(
+                path = absenceCorner,
+                color = Color(0xFFFF0000)
             )
         }
     }

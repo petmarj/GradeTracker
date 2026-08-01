@@ -33,7 +33,7 @@ fun TimeCell(
     }
 }
 
-private fun formatTime(time: Int): String {
+fun formatTime(time: Int): String {
     val hours = time / 100
     val minutes = time % 100
 

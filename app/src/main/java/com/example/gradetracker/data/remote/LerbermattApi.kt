@@ -3,6 +3,8 @@ package com.example.gradetracker.data.remote
 
 import com.example.gradetracker.data.remote.model.AbsencesRequest
 import com.example.gradetracker.data.remote.model.AbsencesResponse
+import com.example.gradetracker.data.remote.model.LoginRequest
+import com.example.gradetracker.data.remote.model.LoginResponse
 import com.example.gradetracker.data.remote.model.MaxHalfdayResponse
 import com.example.gradetracker.data.remote.model.SchedulerRequest
 import com.example.gradetracker.data.remote.model.SchedulerResponse
@@ -41,4 +43,10 @@ interface LerbermattApi {
         @Header("Authorization") authorization: String,
         @Body request: AbsencesRequest
     ): Response<AbsencesResponse>
+
+    @Headers("Accept: application/json")
+    @POST("Absence/List")
+    suspend fun login(
+        @Body request: LoginRequest
+    ): Response<LoginResponse>
 }

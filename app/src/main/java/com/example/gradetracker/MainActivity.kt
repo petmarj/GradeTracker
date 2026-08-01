@@ -60,6 +60,7 @@ import com.example.gradetracker.ui.student.StudentScreen
 import com.example.gradetracker.ui.student.StudentViewModel
 import com.example.gradetracker.ui.student.StudentViewModelFactory
 import androidx.compose.foundation.layout.consumeWindowInsets
+import com.example.gradetracker.data.local.dao.KnownAbsenceDao
 import com.example.gradetracker.data.repository.LerbermattRepository
 import com.example.gradetracker.ui.timetables.TimetablesScreen
 import com.example.gradetracker.ui.timetables.TimetablesViewModel
@@ -213,21 +214,11 @@ private fun GradeTrackerApp(
                 PlaceholderScreen(title = TopLevelDestination.STATS.label)
             }
             composable(MoreRoutes.SETTINGS) {
-                val context = LocalContext.current
 
-                val tokenStore: TokenStore = remember(context) {
-                    SharedPreferencesTokenStore(context)
-                }
-                val schedulerRepository = remember {
-                    SchedulerRepository(
-                        api = NetworkClient.lerbermattApi,
-                        tokenStore = tokenStore
-                    )
-                }
                 val factory = remember {
                     SettingsViewModelFactory(
                         tokenStore,
-                        schedulerRepository,
+                        studentRepository,
                         appPreferences
                     )
                 }

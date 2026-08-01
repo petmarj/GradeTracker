@@ -37,6 +37,7 @@ fun AbsenceInformationCard(
         1 -> "Geplante Absenz"
         2 -> "Verspätung"
         3 -> "Dispensation"
+        5 -> "Halbtag"
         else -> "Absenz"
     }
 

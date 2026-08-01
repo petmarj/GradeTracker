@@ -28,7 +28,8 @@ enum class LessonBaseState {
 data class LessonVisualState(
     val baseState: LessonBaseState,
     val hasExam: Boolean,
-    val hasAbsence: Boolean
+    val hasAbsence: Boolean,
+    val absenceIsUnplanned: Boolean
 )
 
 data class LessonColors(
@@ -82,9 +83,16 @@ fun getLessonVisualState(
                 absence.timeSlot.id == lesson.timeSlot.id
     }
 
+    val absenceIsUnplanned = absences.any { absence ->
+        absence.date == lesson.date &&
+                absence.timeSlot.id == lesson.timeSlot.id &&
+                absence.type == 0
+    }
+
     return LessonVisualState(
         baseState = baseState,
         hasExam = hasExam,
-        hasAbsence = hasAbsence
+        hasAbsence = hasAbsence,
+        absenceIsUnplanned = absenceIsUnplanned
     )
 }

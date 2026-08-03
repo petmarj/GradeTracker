@@ -12,6 +12,9 @@ object NetworkClient {
     private const val PUBLIC_BASE_URL =
         "https://lerbermatt.ch/"
 
+    private const val SV_GROUP_BASE_URL =
+        "https://apps-live-eu.qnips.com/cons/api/"
+
     val lerbermattApi: LerbermattApi by lazy {
         Retrofit.Builder()
             .baseUrl(ABSENCE_BASE_URL)
@@ -26,5 +29,13 @@ object NetworkClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(LerbermattPublicApi::class.java)
+    }
+
+    val svGroupApi: SVGroupAPI by lazy {
+        Retrofit.Builder()
+            .baseUrl(SV_GROUP_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(SVGroupAPI::class.java)
     }
 }

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.gradetracker.data.preferences.AppPreferences
 import com.example.gradetracker.data.remote.TokenStore
-import com.example.gradetracker.data.repository.SchedulerRepository
 import com.example.gradetracker.data.repository.StudentRepository
 
 class SettingsViewModelFactory(

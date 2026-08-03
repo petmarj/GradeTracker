@@ -3,7 +3,6 @@ package com.example.gradetracker.ui.student
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.gradetracker.data.repository.StudentRepository
-import com.example.gradetracker.ui.schedule.SchedulerViewModel
 
 class StudentViewModelFactory (
     private val studentRepository: StudentRepository

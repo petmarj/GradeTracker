@@ -1,8 +1,8 @@
 package com.example.gradetracker.model
 
-import java.util.UUID
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity
 data class Subject (

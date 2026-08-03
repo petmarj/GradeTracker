@@ -1,8 +1,5 @@
 package com.example.gradetracker.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
 
 data class Student(
     val id: Int,
@@ -25,7 +22,8 @@ data class Student(
     val mint: Boolean,
     val musicalInstrument: String,
     val additionalLanguage: String,
-    val birthdate: String
+    val birthdate: String,
+    val studentRefId: Int
 )
 
 

@@ -1,8 +1,6 @@
 package com.example.gradetracker.ui.subject
 
 import androidx.compose.foundation.Canvas
-import com.example.gradetracker.model.Grade
-
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,9 +36,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.gradetracker.domain.Calculator
+import com.example.gradetracker.model.Grade
 import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.gradeColor
-import com.example.gradetracker.domain.Calculator
 
 @Composable
 fun GradeCard(

@@ -1,9 +1,9 @@
 package com.example.gradetracker.data.repository
 
+import com.example.gradetracker.data.local.database.AppDatabase
 import com.example.gradetracker.model.Grade
 import com.example.gradetracker.model.SchoolYear
 import com.example.gradetracker.model.Subject
-import com.example.gradetracker.data.local.database.AppDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 

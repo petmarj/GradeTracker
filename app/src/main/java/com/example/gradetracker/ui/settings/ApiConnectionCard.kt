@@ -7,32 +7,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TextSnippet
-import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -59,13 +48,14 @@ fun ApiConnectionCard(
             HorizontalDivider(thickness = 2.dp)
             Text(
                 textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.fillMaxWidth(),
                 text =  when (val connection = state.connectionState) {
                     ConnectionState.NotTested -> "Bitte Testen"
 
                     ConnectionState.Testing -> "Am testen.."
 
-                    ConnectionState.Connected -> state.user?.firstname + " " + state.user?.lastname
+                    ConnectionState.Connected -> "Angemeldet als: " + state.user?.firstname + " " + state.user?.lastname
 
                     ConnectionState.NotLoggedIn -> "Bitte Anmelden"
 
@@ -88,9 +78,14 @@ fun ApiConnectionCard(
                     }
                 } else {
                     Button(
-                        onClick = onTestConnection
+                        onClick = onLogout,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Verbindung testen")
+                        Text(
+                            text = "Abmelden",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }

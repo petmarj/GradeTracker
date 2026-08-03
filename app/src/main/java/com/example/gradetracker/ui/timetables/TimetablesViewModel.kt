@@ -3,8 +3,6 @@ package com.example.gradetracker.ui.timetables
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gradetracker.data.repository.LerbermattRepository
-import com.example.gradetracker.data.repository.StudentRepository
-import com.example.gradetracker.ui.student.StudentUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -1,8 +1,8 @@
 package com.example.gradetracker.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.ColumnInfo
 
 @Entity(tableName = "known_absences")
 data class KnownAbsenceEntity(

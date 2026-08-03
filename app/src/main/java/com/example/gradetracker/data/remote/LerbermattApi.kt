@@ -45,7 +45,7 @@ interface LerbermattApi {
     ): Response<AbsencesResponse>
 
     @Headers("Accept: application/json")
-    @POST("Absence/List")
+    @POST("Login/Login")
     suspend fun login(
         @Body request: LoginRequest
     ): Response<LoginResponse>

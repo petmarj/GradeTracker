@@ -2,10 +2,10 @@ package com.example.gradetracker.model
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import java.util.UUID
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.gradetracker.domain.Calculator
+import java.util.UUID
 
 @Entity
 data class SchoolYear (

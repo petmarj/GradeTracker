@@ -4,13 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gradetracker.data.preferences.AppPreferences
 import com.example.gradetracker.data.remote.TokenStore
-import com.example.gradetracker.data.repository.SchedulerRepository
+import com.example.gradetracker.data.remote.model.User
 import com.example.gradetracker.data.repository.StudentRepository
 import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.GradeSort
 import com.example.gradetracker.model.SubjectSort
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,10 +16,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.temporal.TemporalAdjusters
 
 class SettingsViewModel(
     private val tokenStore: TokenStore,
@@ -34,7 +28,7 @@ class SettingsViewModel(
 
     init {
         checkToken()
-        //testConnection()
+        getUser()
         viewModelScope.launch {
             appPreferences.settings.collect { settings ->
                 _uiState.update {
@@ -48,6 +42,71 @@ class SettingsViewModel(
         }
     }
 
+    private fun getUser() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    connectionState = ConnectionState.Testing
+                )
+            }
+
+            try {
+                val response = studentRepository.getStudentData()
+
+                val student = response.data.student
+
+                val user = User(
+                    username = student.studentRefId.toString(),
+                    firstname = student.firstname,
+                    lastname = student.lastname,
+                    studentId = student.id.toString(),
+                    id = ""
+                )
+
+                _uiState.update {
+                    it.copy(
+                        connectionState = ConnectionState.Connected,
+                        user = user,
+                        loggedIn = true
+                    )
+                }
+            } catch (exception: HttpException) {
+                val message = when (exception.code()) {
+                    400, 401 ->
+                        "Nicht angemeldet"
+
+                    else ->
+                        "Login fehlgeschlagen (HTTP ${exception.code()})."
+                }
+
+                _uiState.update {
+                    it.copy(
+                        loggedIn = false,
+                        connectionState = ConnectionState.NotLoggedIn
+                    )
+                }
+            } catch (exception: IOException) {
+                _uiState.update {
+                    it.copy(
+                        loggedIn = false,
+                        connectionState = ConnectionState.Failed(
+                            "Keine Verbindung zum Absenzensystem."
+                        )
+                    )
+                }
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(
+                        loggedIn = false,
+                        connectionState = ConnectionState.Failed(
+                            exception.message
+                                ?: "Der Login ist fehlgeschlagen."
+                        )
+                    )
+                }
+            }
+        }
+    }
     private fun checkToken() {
         viewModelScope.launch {
             val token = tokenStore.getToken()
@@ -69,25 +128,20 @@ class SettingsViewModel(
         appPreferences.setGradeColorMode(mode)
     }
 
-    fun storeToken(token: String){
-        CoroutineScope(
-            Dispatchers.IO
-        ).launch {
-            tokenStore.saveToken(token)
+
+    fun logout(){
+        viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    loggedIn = true,
-                    connectionState = ConnectionState.NotTested
+                    loggedIn = false,
+                    connectionState = ConnectionState.NotLoggedIn,
+                    user = null
                 )
-
             }
-            //testConnection()
+
+            tokenStore.clearToken()
         }
-
-
     }
-
-
     fun login(username: String, password: String) {
         val cleanUsername = username.trim()
         if (cleanUsername.isBlank() || password.isBlank()) {

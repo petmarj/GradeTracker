@@ -1,19 +1,19 @@
-package com.example.gradetracker.ui.timetables
+package com.example.gradetracker.ui.mensa
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.gradetracker.data.repository.LerbermattRepository
+import com.example.gradetracker.data.repository.MensaRepository
 
-class TimetablesViewModelFactory (
-    private val lerbermattRepository: LerbermattRepository
+class MensaViewModelFactory(
+    private val repository: MensaRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(
         modelClass: Class<T>
     ): T {
-        if (modelClass.isAssignableFrom(TimetablesViewModel::class.java)) {
-            return TimetablesViewModel(lerbermattRepository) as T
+        if (modelClass.isAssignableFrom(MensaViewModel::class.java)) {
+            return MensaViewModel(repository) as T
         }
 
         throw IllegalArgumentException(

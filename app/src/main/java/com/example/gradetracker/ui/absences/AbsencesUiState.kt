@@ -1,8 +1,6 @@
 package com.example.gradetracker.ui.absences
 
-import android.graphics.Picture
 import com.example.gradetracker.model.Absence
-import com.example.gradetracker.model.Student
 
 data class AbsencesUiState(
     val absences: List<Absence>? = null,

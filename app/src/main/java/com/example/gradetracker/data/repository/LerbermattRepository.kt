@@ -1,9 +1,6 @@
 package com.example.gradetracker.data.repository
 
 import com.example.gradetracker.data.remote.LerbermattPublicApi
-import com.example.gradetracker.data.remote.model.SchedulerRequest
-import com.example.gradetracker.data.remote.model.SchedulerResponse
-import com.example.gradetracker.data.remote.model.TimetableLinksResponse
 import com.example.gradetracker.model.TimetableLink
 import retrofit2.HttpException
 import java.io.IOException

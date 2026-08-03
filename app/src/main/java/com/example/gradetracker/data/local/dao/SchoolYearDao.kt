@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import kotlinx.coroutines.flow.Flow
 import com.example.gradetracker.model.SchoolYear
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SchoolYearDao {

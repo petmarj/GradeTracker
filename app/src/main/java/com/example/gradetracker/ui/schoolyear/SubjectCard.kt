@@ -32,13 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.gradetracker.model.Subject
 import com.example.gradetracker.data.local.database.DatabaseProvider
-import com.example.gradetracker.model.GradeColorMode
-import com.example.gradetracker.model.gradeColor
+import com.example.gradetracker.data.repository.GradeRepository
 import com.example.gradetracker.domain.Calculator
 import com.example.gradetracker.domain.Calculator.roundToHundred
-import com.example.gradetracker.data.repository.GradeRepository
+import com.example.gradetracker.model.GradeColorMode
+import com.example.gradetracker.model.Subject
+import com.example.gradetracker.model.gradeColor
 import com.example.gradetracker.ui.subject.GradeColorStripe
 
 @Composable

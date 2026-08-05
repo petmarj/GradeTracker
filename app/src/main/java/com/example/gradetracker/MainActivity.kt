@@ -31,6 +31,7 @@ import com.example.gradetracker.data.remote.NetworkClient
 import com.example.gradetracker.data.remote.SharedPreferencesTokenStore
 import com.example.gradetracker.data.remote.TokenStore
 import com.example.gradetracker.data.repository.LerbermattRepository
+import com.example.gradetracker.data.repository.GradeRepository
 import com.example.gradetracker.data.repository.MensaRepository
 import com.example.gradetracker.data.repository.SchedulerRepository
 import com.example.gradetracker.data.repository.StudentRepository
@@ -227,7 +228,8 @@ private fun GradeTrackerApp(
                     SettingsViewModelFactory(
                         tokenStore,
                         studentRepository,
-                        appPreferences
+                        appPreferences,
+                        GradeRepository(database)
                     )
                 }
                 val settingsViewModel: SettingsViewModel = viewModel(

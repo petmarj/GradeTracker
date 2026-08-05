@@ -38,7 +38,10 @@ fun ApiConnectionCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = "Absenzensystem ",
                     style = MaterialTheme.typography.titleLarge
@@ -50,7 +53,7 @@ fun ApiConnectionCard(
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.fillMaxWidth(),
-                text =  when (val connection = state.connectionState) {
+                text = when (val connection = state.connectionState) {
                     ConnectionState.NotTested -> "Bitte Testen"
 
                     ConnectionState.Testing -> "Am testen.."
@@ -65,7 +68,7 @@ fun ApiConnectionCard(
 
 
             Row() {
-                if (!state.loggedIn){
+                if (!state.loggedIn) {
                     Button(
                         onClick = onLogin,
                         modifier = Modifier.fillMaxWidth()

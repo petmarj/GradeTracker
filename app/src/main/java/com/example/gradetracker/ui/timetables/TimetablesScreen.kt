@@ -298,7 +298,7 @@ fun RemotePdfViewer(
     }
 
     Box(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         when {

@@ -3,8 +3,9 @@ package com.example.gradetracker.model
 import java.time.LocalDate
 
 
-typealias AllergenId = Long
-typealias AdditiveId = Long
+typealias AllergenId = Int
+typealias SubAllergenId = Int
+typealias AdditiveId = Int
 
 data class MensaWeek(
     val storeId: Int,
@@ -12,7 +13,8 @@ data class MensaWeek(
     val requestedDate: LocalDate,
     val isoYear: Int,
     val isoWeek: Int,
-    val days: List<MensaDay>
+    val days: List<MensaDay>,
+    val allergenCatalog: AllergenCatalog
 )
 
 data class MensaDay(
@@ -34,7 +36,7 @@ data class MensaMeal(
     val name: String,
     val description: String?,
     val prices: List<MensaPrice>,
-    val allergens: List<AllergenId>,
+    val allergens: List<MealAllergen>,
     val additives: List<AdditiveId>,
     val labels: List<String>,
     val nutritionFacts: NutritionFacts?,
@@ -69,4 +71,25 @@ data class NutritionValues(
     val proteinGrams: Double?,
     val fiberGrams: Double?,
     val saltGrams: Double?
+)
+
+data class MealAllergen(
+    val allergenId: AllergenId,
+    val subAllergenIds: Set<SubAllergenId> = emptySet()
+)
+
+data class AllergenCatalog(
+    val allergens: Map<AllergenId, AllergenDefinition>
+)
+
+data class AllergenDefinition(
+    val id: AllergenId,
+    val name: String,
+    val iconResId: Int,
+    val subAllergens: Map<SubAllergenId, SubAllergenDefinition> = emptyMap()
+)
+
+data class SubAllergenDefinition(
+    val id: SubAllergenId,
+    val name: String
 )

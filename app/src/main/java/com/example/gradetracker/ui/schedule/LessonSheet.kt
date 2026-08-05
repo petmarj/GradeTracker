@@ -36,10 +36,10 @@ fun LessonSheet(
     absences: List<Absence>,
     exams: List<Exam>
 ) {
-    if( lesson == null) return
+    if (lesson == null) return
 
     val hasExam =
-        exams.isNotEmpty() || exams.any { exam ->
+        exams.isNotEmpty() && exams.any { exam ->
             exam.lessonId == lesson.id
         }
 
@@ -71,15 +71,14 @@ fun LessonSheet(
             .verticalScroll(rememberScrollState())
     ) {
         BasicCard(lesson, hasExam)
-        if (absence != null){
+        if (absence != null) {
             AbsenceCard(
                 absence = absence,
                 lesson = lesson
             )
         }
-        RoomCard(lesson.lessonRooms.first().room)
+        RoomCard(lesson.lessonRooms.firstOrNull()?.room ?: null)
     }
-
 
 
 }
@@ -88,7 +87,7 @@ fun LessonSheet(
 private fun BasicCard(
     lesson: Lesson,
     hasExam: Boolean
-){
+) {
     val formattedDate = remember(lesson.date) {
         runCatching {
             LocalDate.parse(lesson.date.take(10))
@@ -134,7 +133,7 @@ private fun BasicCard(
                 value = lesson.lessonRooms.first().room.namedId.drop(3)
             )
 
-            if(hasExam){
+            if (hasExam) {
                 InformationRow(
                     label = "Test?",
                     value = "Ja"
@@ -146,8 +145,9 @@ private fun BasicCard(
 
 @Composable
 private fun RoomCard(
-    room: Room
-){
+    room: Room?
+) {
+    if (room == null) return
 
     ElevatedCard(
         modifier = Modifier
@@ -181,7 +181,7 @@ private fun RoomCard(
 private fun AbsenceCard(
     absence: Absence,
     lesson: Lesson
-){
+) {
     val typeText = when (absence.type) {
         0 -> "Ungeplante Absenz"
         1 -> "Geplante Absenz"
@@ -302,6 +302,7 @@ private fun CommentBlock(
         }
     }
 }
+
 private fun absenceStateText(state: Int): String =
     when (state) {
         0 -> "Offen"
@@ -309,6 +310,7 @@ private fun absenceStateText(state: Int): String =
         2 -> "Entschuldigt"
         else -> "Unbekannt"
     }
+
 @Composable
 private fun InformationRow(
     label: String,

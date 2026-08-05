@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,27 +21,33 @@ fun StudentScreen(
     LazyColumn(
         modifier = Modifier.padding(8.dp),
     ) {
-        when{
+        when {
             state.isLoading -> {
                 item {
                     Box(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Lädt...")
+                        CircularProgressIndicator()
                     }
                 }
             }
+
             state.errorMessage != null -> {
                 item {
                     Box(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(state.errorMessage!!)
                     }
                 }
             }
+
             else -> {
                 item {
                     StudentHeadCard(

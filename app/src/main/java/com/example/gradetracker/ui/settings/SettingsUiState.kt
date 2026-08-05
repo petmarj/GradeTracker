@@ -11,8 +11,20 @@ data class SettingsUiState(
     val user: User? = null,
     val subjectSort: SubjectSort = SubjectSort.NEWEST,
     val gradeSort: GradeSort = GradeSort.NEWEST,
-    val gradeColorMode: GradeColorMode = GradeColorMode.NORMAL
+    val gradeColorMode: GradeColorMode = GradeColorMode.NORMAL,
+    val plusPointsImportState: PlusPointsImportState = PlusPointsImportState.Idle
 )
+
+sealed interface PlusPointsImportState {
+    data object Idle : PlusPointsImportState
+    data object Importing : PlusPointsImportState
+    data class Success(
+        val semesterName: String,
+        val subjectCount: Int,
+        val gradeCount: Int
+    ) : PlusPointsImportState
+    data class Failed(val message: String) : PlusPointsImportState
+}
 
 sealed interface ConnectionState {
     data object NotTested : ConnectionState

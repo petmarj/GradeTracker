@@ -1,11 +1,20 @@
 package com.example.gradetracker.data.repository
 
+import androidx.room.withTransaction
+import com.example.gradetracker.data.importer.PlusPointsParser
 import com.example.gradetracker.data.local.database.AppDatabase
 import com.example.gradetracker.model.Grade
 import com.example.gradetracker.model.SchoolYear
 import com.example.gradetracker.model.Subject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import java.io.InputStream
+
+data class PlusPointsImportResult(
+    val semesterName: String,
+    val subjectCount: Int,
+    val gradeCount: Int
+)
 
 class GradeRepository(
     private val db: AppDatabase
@@ -14,6 +23,44 @@ class GradeRepository(
     private val subjectDao = db.subjectDao()
 
     private val gradeDao = db.gradeDao()
+
+    suspend fun importPlusPoints(inputStream: InputStream): PlusPointsImportResult {
+        val imported = PlusPointsParser.parse(inputStream)
+        var gradeCount = 0
+
+        db.withTransaction {
+            val schoolYear = SchoolYear(name = imported.name)
+            schoolYearDao.insert(schoolYear)
+
+            imported.subjects.forEach { importedSubject ->
+                val subject = Subject(
+                    name = importedSubject.name,
+                    schoolYearId = schoolYear.id
+                )
+                subjectDao.insert(subject)
+
+                importedSubject.exams.forEach { importedExam ->
+                    gradeDao.insert(
+                        Grade(
+                            timeCreated = importedExam.date
+                                ?: System.currentTimeMillis(),
+                            subjectId = subject.id,
+                            name = importedExam.name,
+                            value = importedExam.mark,
+                            weight = importedExam.weight
+                        )
+                    )
+                    gradeCount++
+                }
+            }
+        }
+
+        return PlusPointsImportResult(
+            semesterName = imported.name,
+            subjectCount = imported.subjects.size,
+            gradeCount = gradeCount
+        )
+    }
 
 
 

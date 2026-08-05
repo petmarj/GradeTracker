@@ -6,6 +6,7 @@ import com.example.gradetracker.data.preferences.AppPreferences
 import com.example.gradetracker.data.remote.TokenStore
 import com.example.gradetracker.data.remote.model.User
 import com.example.gradetracker.data.repository.StudentRepository
+import com.example.gradetracker.data.repository.GradeRepository
 import com.example.gradetracker.model.GradeColorMode
 import com.example.gradetracker.model.GradeSort
 import com.example.gradetracker.model.SubjectSort
@@ -16,11 +17,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import java.io.InputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SettingsViewModel(
     private val tokenStore: TokenStore,
     private val studentRepository: StudentRepository,
-    private val appPreferences: AppPreferences
+    private val appPreferences: AppPreferences,
+    private val gradeRepository: GradeRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -126,6 +131,44 @@ class SettingsViewModel(
 
     fun setGradeColorMode(mode: GradeColorMode) {
         appPreferences.setGradeColorMode(mode)
+    }
+
+    fun importPlusPoints(inputStream: InputStream) {
+        if (_uiState.value.plusPointsImportState == PlusPointsImportState.Importing) return
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(plusPointsImportState = PlusPointsImportState.Importing)
+            }
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    inputStream.use { gradeRepository.importPlusPoints(it) }
+                }
+                _uiState.update {
+                    it.copy(
+                        plusPointsImportState = PlusPointsImportState.Success(
+                            semesterName = result.semesterName,
+                            subjectCount = result.subjectCount,
+                            gradeCount = result.gradeCount
+                        )
+                    )
+                }
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(
+                        plusPointsImportState = PlusPointsImportState.Failed(
+                            exception.message ?: "Die Datei konnte nicht importiert werden."
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun reportImportError(message: String) {
+        _uiState.update {
+            it.copy(plusPointsImportState = PlusPointsImportState.Failed(message))
+        }
     }
 
 

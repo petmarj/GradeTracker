@@ -1,6 +1,7 @@
 package com.example.gradetracker.ui.mensa
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,93 +61,106 @@ fun MensaScreen(
     val today = LocalDate.now(
         ZoneId.of("Europe/Zurich")
     )
-
-    LaunchedEffect(
-        state.menu?.isoYear,
-        state.menu?.isoWeek
-    ) {
-        val days = state.menu?.days.orEmpty()
-
-        selectedDay = days.firstOrNull { day ->
-            day.date == today
-        } ?: days.firstOrNull()
-    }
-
-    if (state.menu == null) {
-        return
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
     } else {
 
-        val days = state.menu!!.days
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        LaunchedEffect(
+            state.menu?.isoYear,
+            state.menu?.isoWeek
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(onClick = { viewModel.previousWeek() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Vorherige Woche"
+            val days = state.menu?.days.orEmpty()
+
+            selectedDay = days.firstOrNull { day ->
+                day.date == today
+            } ?: days.firstOrNull()
+        }
+
+        if (state.menu == null) {
+            return
+        } else {
+
+            val days = state.menu!!.days
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = { viewModel.previousWeek() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                contentDescription = "Vorherige Woche"
+                            )
+                        }
+                        Text(
+                            text = "Mensa",
+                            style = MaterialTheme.typography.headlineLarge,
+                            textAlign = TextAlign.Center,
                         )
-                    }
-                    Text(
-                        text = "Mensa",
-                        style = MaterialTheme.typography.headlineLarge,
-                        textAlign = TextAlign.Center,
-                    )
-                    IconButton(onClick = { viewModel.nextWeek() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Nächste Woche"
-                        )
+                        IconButton(onClick = { viewModel.nextWeek() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = "Nächste Woche"
+                            )
+                        }
                     }
                 }
-            }
 
-            item {
-                DayRow(
-                    days = days,
-                    selectedDay = selectedDay,
-                    onClick = {
-                        selectedDay = it
+
+
+                item {
+                    DayRow(
+                        days = days,
+                        selectedDay = selectedDay,
+                        onClick = {
+                            selectedDay = it
+                        }
+                    )
+                }
+                item {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val meals = selectedDay?.getAllMeals()
+
+                        meals?.forEach { meal ->
+                            MealCard(
+                                meal = meal,
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    showBottomSheet = true
+                                    selectedMeal = it
+                                }
+                            )
+
+                        }
+
                     }
-                )
-            }
-            item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val meals = selectedDay?.getAllMeals()
-
-                    meals?.forEach { meal ->
-                        MealCard(
-                            meal = meal,
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                showBottomSheet = true
-                                selectedMeal = it
-                            }
-                        )
-
-                    }
-
                 }
             }
         }
     }
 
     if (showBottomSheet) {
-        MealBottomSheet(
-            meal = selectedMeal,
-            onDismiss = {
-                showBottomSheet = false
-            }
-        )
+        state.menu?.allergenCatalog?.let { allergenCatalog ->
+            MealBottomSheet(
+                meal = selectedMeal,
+                allergenCatalog = allergenCatalog,
+                onDismiss = {
+                    showBottomSheet = false
+                }
+            )
+        }
     }
 }
 

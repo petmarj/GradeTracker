@@ -1,7 +1,11 @@
 package com.example.gradetracker.data.repository
 
+import com.example.gradetracker.R
 import com.example.gradetracker.data.remote.SVGroupAPI
 import com.example.gradetracker.data.remote.model.FirebaseSignInRequest
+import com.example.gradetracker.model.AllergenCatalog
+import com.example.gradetracker.model.AllergenDefinition
+import com.example.gradetracker.model.MealAllergen
 import com.example.gradetracker.model.MensaCategory
 import com.example.gradetracker.model.MensaCo2Info
 import com.example.gradetracker.model.MensaDay
@@ -10,6 +14,7 @@ import com.example.gradetracker.model.MensaPrice
 import com.example.gradetracker.model.MensaWeek
 import com.example.gradetracker.model.NutritionFacts
 import com.example.gradetracker.model.NutritionValues
+import com.example.gradetracker.model.SubAllergenDefinition
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import kotlinx.coroutines.sync.Mutex
@@ -59,7 +64,8 @@ class MensaRepository(
                 requestedDate = date,
                 isoYear = isoYear,
                 isoWeek = isoWeek,
-                days = days
+                days = days,
+                allergenCatalog = SV_ALLERGEN_CATALOG
             )
         } catch (exception: IOException) {
             throw IOException(
@@ -139,15 +145,9 @@ class MensaRepository(
     private fun mapMeal(
         fields: Map<String, Any?>
     ): MensaMeal {
-        val allergens = listOf(
-            "Allergens",
-            "SubAllergens0",
-            "SubAllergens7"
-        ).flatMap { key ->
-            collectIds(fields[key])
-        }.distinct()
+        val allergens = mapMealAllergens(fields)
 
-        val additives = collectIds(
+        val additives = collectIntIds(
             fields["Additives"]
         ).distinct()
 
@@ -185,6 +185,23 @@ class MensaRepository(
                 fields["NutritionFacts"].asStringMap()
             )
         )
+    }
+
+    private fun mapMealAllergens(
+        fields: Map<String, Any?>
+    ): List<MealAllergen> {
+        val parentIds = collectIntIds(
+            fields["Allergens"]
+        ).distinct()
+
+        return parentIds.map { allergenId ->
+            MealAllergen(
+                allergenId = allergenId,
+                subAllergenIds = collectIntIds(
+                    fields["$SUB_ALLERGENS_PREFIX$allergenId"]
+                ).toSet()
+            )
+        }
     }
 
     private fun mapNutritionFacts(
@@ -232,18 +249,18 @@ class MensaRepository(
         )
     }
 
-    private fun collectIds(value: Any?): List<Long> {
+    private fun collectIntIds(value: Any?): List<Int> {
         return when (value) {
-            is Number -> listOf(value.toLong())
+            is Number -> listOf(value.toInt())
 
             is String ->
-                value.toLongOrNull()?.let(::listOf) ?: emptyList()
+                value.toIntOrNull()?.let(::listOf) ?: emptyList()
 
             is List<*> ->
-                value.flatMap(::collectIds)
+                value.flatMap(::collectIntIds)
 
             is Map<*, *> -> {
-                val directId = collectIds(value["Id"])
+                val directId = collectIntIds(value["Id"])
 
                 val nestedIds = listOf(
                     "Items",
@@ -251,7 +268,7 @@ class MensaRepository(
                     "Allergens",
                     "Additives"
                 ).flatMap { key ->
-                    collectIds(value[key])
+                    collectIntIds(value[key])
                 }
 
                 directId + nestedIds
@@ -486,6 +503,7 @@ class MensaRepository(
         const val LERBERMATT_STORE_ID = 41735
         const val LERBERMATT_MENU_ID = 18339
         const val LANGUAGE = "de-CH"
+        const val SUB_ALLERGENS_PREFIX = "SubAllergens"
 
         const val TOKEN_EXPIRY_MARGIN_SECONDS = 60L
         const val DEFAULT_TOKEN_LIFETIME_SECONDS = 3600L
@@ -498,5 +516,134 @@ class MensaRepository(
         const val FIRESTORE_DOCUMENTS_URL =
             "https://firestore.googleapis.com/v1/projects/" +
                     "qnips-sv-group-ch/databases/(default)/documents"
+
+        val SV_ALLERGEN_CATALOG = AllergenCatalog(
+            allergens = mapOf(
+                0 to AllergenDefinition(
+                    id = 0,
+                    name = "Glutenhaltiges Getreide",
+                    iconResId = R.drawable.allergen_gluten,
+                    subAllergens = mapOf(
+                        0 to SubAllergenDefinition(
+                            id = 0,
+                            name = "Weizen und Weizenerzeugnisse "
+                        ),
+                        1 to SubAllergenDefinition(
+                            id = 1,
+                            name = "Roggen und Roggenerzeugnisse"
+                        ),
+                        2 to SubAllergenDefinition(
+                            id = 2,
+                            name = "Gerste und Gersteerzeugnisse"
+                        ),
+                        3 to SubAllergenDefinition(
+                            id = 3,
+                            name = "Hafer und Hafererzeugnisse"
+                        )
+                    )
+                ),
+                1 to AllergenDefinition(
+                    id = 1,
+                    iconResId = R.drawable.allergen_krebstiere,
+                    name = "Krebstiere und Krebstiererzeugnisse"
+                ),
+                2 to AllergenDefinition(
+                    id = 2,
+                    iconResId = R.drawable.allergen_eier,
+                    name = "Eier und Eiererzeugnisse"
+                ),
+                3 to AllergenDefinition(
+                    id = 3,
+                    iconResId = R.drawable.allergen_fisch,
+                    name = "Fisch und Fischerzeugnisse"
+                ),
+                4 to AllergenDefinition(
+                    id = 4,
+                    iconResId = R.drawable.allergen_erdnusse,
+                    name = "Erdn\u00FCsse und Erdnusserzeugnisse"
+                ),
+                5 to AllergenDefinition(
+                    id = 5,
+                    iconResId = R.drawable.allergen_soja,
+                    name = "Soja und Sojaerzeugnisse"
+                ),
+                6 to AllergenDefinition(
+                    id = 6,
+                    iconResId = R.drawable.allergen_milch,
+                    name = "Milch und Milcherzeugnisse (Laktose)"
+                ),
+                7 to AllergenDefinition(
+                    id = 7,
+                    iconResId = R.drawable.allergen_schalennusse,
+                    name = "Schalenfr\u00FCchte und " +
+                            "Schalenfr\u00FCchteerzeugnisse",
+                    subAllergens = mapOf(
+                        0 to SubAllergenDefinition(
+                            id = 0,
+                            name = "Mandeln und Mandelerzeugnisse"
+                        ),
+                        1 to SubAllergenDefinition(
+                            id = 1,
+                            name = "Haseln\u00FCsse und Haselnusserzeugnisse"
+                        ),
+                        2 to SubAllergenDefinition(
+                            id = 2,
+                            name = "Waln\u00FCsse und Walnusserzeugnisse"
+                        ),
+                        3 to SubAllergenDefinition(
+                            id = 3,
+                            name = "Kaschun\u00FCsse und Kaschunusserzeugnisse"
+                        ),
+                        4 to SubAllergenDefinition(
+                            id = 4,
+                            name = "Pecan\u00FCsse und Pecanusserzeugnisse"
+                        ),
+                        5 to SubAllergenDefinition(
+                            id = 5,
+                            name = "Paran\u00FCsse und Paranusserzeugnisse"
+                        ),
+                        6 to SubAllergenDefinition(
+                            id = 6,
+                            name = "Pistazien und Pistazienerzeugnisse"
+                        ),
+                        7 to SubAllergenDefinition(
+                            id = 7,
+                            name = "Macadamia- oder Queenslandn\u00FCsse und " +
+                                    "daraus gewonnene Erzeugnisse"
+                        )
+                    )
+                ),
+                8 to AllergenDefinition(
+                    id = 8,
+                    iconResId = R.drawable.allergen_sellerie,
+                    name = "Sellerie und Sellerieerzeugnisse"
+                ),
+                9 to AllergenDefinition(
+                    id = 9,
+                    iconResId = R.drawable.allergen_senf,
+                    name = "Senf und Senferzeugnisse"
+                ),
+                10 to AllergenDefinition(
+                    id = 10,
+                    iconResId = R.drawable.allergen_sesam,
+                    name = "Sesam und Sesamerzeugnisse"
+                ),
+                11 to AllergenDefinition(
+                    id = 11,
+                    iconResId = R.drawable.allergen_sulfite,
+                    name = "Schwefeldioxid und Sulfite"
+                ),
+                12 to AllergenDefinition(
+                    id = 12,
+                    iconResId = R.drawable.allergen_lupinen,
+                    name = "Lupinen und Lupinenerzeugnisse"
+                ),
+                13 to AllergenDefinition(
+                    id = 13,
+                    iconResId = R.drawable.allergen_weichtiere,
+                    name = "Weichtiere und Weichtiererzeugnisse"
+                )
+            )
+        )
     }
 }

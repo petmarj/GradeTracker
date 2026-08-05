@@ -6,6 +6,6 @@ import java.time.LocalDate
 data class MensaUiState(
     val menu: MensaWeek? = null,
     val weekStart: LocalDate,
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val errorMessage: String? = null
 )

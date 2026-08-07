@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gradetracker"
+    namespace = "ch.petersen.lerbermattapp"
     compileSdk {
         version = release(37) {
             minorApiLevel = 1
@@ -14,11 +14,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.gradetracker"
+        applicationId = "ch.petersen.lerbermattapp"
         minSdk = 36
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

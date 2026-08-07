@@ -1,0 +1,380 @@
+package ch.example.gradetracker
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import ch.example.gradetracker.data.local.database.DatabaseProvider
+import ch.example.gradetracker.data.preferences.AppPreferences
+import ch.example.gradetracker.data.preferences.AppSettings
+import ch.example.gradetracker.data.remote.NetworkClient
+import ch.example.gradetracker.data.remote.SharedPreferencesTokenStore
+import ch.example.gradetracker.data.remote.TokenStore
+import ch.example.gradetracker.data.repository.GradeRepository
+import ch.example.gradetracker.data.repository.LerbermattRepository
+import ch.example.gradetracker.data.repository.MensaRepository
+import ch.example.gradetracker.data.repository.SchedulerRepository
+import ch.example.gradetracker.data.repository.StudentRepository
+import ch.example.gradetracker.domain.AbsenceNotifications
+import ch.example.gradetracker.domain.scheduleAbsenceSync
+import ch.example.gradetracker.domain.scheduleImmediateAbsenceSync
+import ch.example.gradetracker.model.GradeSort
+import ch.example.gradetracker.model.SubjectSort
+import ch.example.gradetracker.ui.PlaceholderScreen
+import ch.example.gradetracker.ui.absences.AbsenceRoutes
+import ch.example.gradetracker.ui.absences.AbsenceWebsiteRoute
+import ch.example.gradetracker.ui.absences.AbsencesScreen
+import ch.example.gradetracker.ui.absences.AbsencesViewModel
+import ch.example.gradetracker.ui.absences.AbsencesViewModelFactory
+import ch.example.gradetracker.ui.home.HomeScreen
+import ch.example.gradetracker.ui.mensa.MensaScreen
+import ch.example.gradetracker.ui.mensa.MensaViewModel
+import ch.example.gradetracker.ui.mensa.MensaViewModelFactory
+import ch.example.gradetracker.ui.navigation.GradeTrackerNavigationBar
+import ch.example.gradetracker.ui.navigation.MoreRoutes
+import ch.example.gradetracker.ui.navigation.TopLevelDestination
+import ch.example.gradetracker.ui.schedule.ScheduleScreen
+import ch.example.gradetracker.ui.schedule.SchedulerViewModel
+import ch.example.gradetracker.ui.schedule.SchedulerViewModelFactory
+import ch.example.gradetracker.ui.schoolyear.SchoolYearScreen
+import ch.example.gradetracker.ui.settings.SettingsScreen
+import ch.example.gradetracker.ui.settings.SettingsViewModel
+import ch.example.gradetracker.ui.settings.SettingsViewModelFactory
+import ch.example.gradetracker.ui.student.StudentScreen
+import ch.example.gradetracker.ui.student.StudentViewModel
+import ch.example.gradetracker.ui.student.StudentViewModelFactory
+import ch.example.gradetracker.ui.subject.SubjectScreen
+import ch.example.gradetracker.ui.theme.GradeTrackerTheme
+import ch.example.gradetracker.ui.timetables.TimetablesScreen
+import ch.example.gradetracker.ui.timetables.TimetablesViewModel
+import ch.example.gradetracker.ui.timetables.TimetablesViewModelFactory
+
+class MainActivity : ComponentActivity() {
+    private val notificationPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                scheduleImmediateAbsenceSync(applicationContext)
+            }
+        }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            val context = LocalContext.current
+
+            val appPreferences = remember(context) {
+                AppPreferences(context)
+            }
+
+            val appSettings by appPreferences.settings.collectAsState()
+
+            GradeTrackerTheme(
+                themeMode = appSettings.themeMode,
+                dynamicColor = appSettings.dynamicColors
+            ) {
+                GradeTrackerApp(
+                    appSettings = appSettings,
+                    appPreferences = appPreferences
+                )
+            }
+        }
+
+        AbsenceNotifications.createChannel(applicationContext)
+        scheduleAbsenceSync(applicationContext)
+
+        if (
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
+    }
+}
+
+@Composable
+private fun GradeTrackerApp(
+    appSettings: AppSettings,
+    appPreferences: AppPreferences
+) {
+    val context = LocalContext.current
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    val tokenStore: TokenStore = remember(context) {
+        SharedPreferencesTokenStore(context)
+    }
+    val database = remember(context) {
+        DatabaseProvider.getDatabase(context)
+    }
+    val studentRepository = remember(tokenStore, database) {
+        StudentRepository(
+            api = NetworkClient.lerbermattApi,
+            tokenStore = tokenStore,
+            knownAbsenceDao = database.knownAbsenceDao()
+        )
+    }
+    val lerbermattRepository = remember {
+        LerbermattRepository(
+            api = NetworkClient.publicApi,
+        )
+    }
+
+    val mensaRepository = remember {
+        MensaRepository(
+            api = NetworkClient.svGroupApi
+        )
+    }
+    val unreadAbsenceIdsFlow = remember(database) {
+        database.knownAbsenceDao().observeUnreadIds()
+    }
+    val unreadAbsenceIds by unreadAbsenceIdsFlow.collectAsState(
+        initial = emptyList()
+    )
+    val moreRouteBadgeCounts = remember(unreadAbsenceIds) {
+        mapOf(
+            MoreRoutes.ABSENCES to unreadAbsenceIds.size
+        )
+    }
+
+    val subjectSortBySchoolYear = remember {
+        mutableStateMapOf<String, SubjectSort>()
+    }
+
+    val gradeSortBySubject = remember {
+        mutableStateMapOf<String, GradeSort>()
+    }
+    Scaffold(
+        bottomBar = {
+            if (currentRoute != AbsenceRoutes.WEBSITE) {
+                GradeTrackerNavigationBar(
+                    navController = navController,
+                    currentRoute = currentRoute,
+                    moreRouteBadgeCounts = moreRouteBadgeCounts
+                )
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = TopLevelDestination.GRADES.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(TopLevelDestination.GRADES.route) {
+                HomeScreen(
+                    navController = navController,
+                    gradeColorMode = appSettings.gradeColorMode
+                )
+            }
+            composable(TopLevelDestination.SCHEDULE.route) {
+                val context = LocalContext.current
+
+                val tokenStore: TokenStore = remember(context) {
+                    SharedPreferencesTokenStore(context)
+                }
+
+                val repository = remember {
+                    SchedulerRepository(
+                        api = NetworkClient.lerbermattApi,
+                        tokenStore = tokenStore
+                    )
+                }
+
+                val factory = remember {
+                    SchedulerViewModelFactory(repository)
+                }
+
+                val schedulerViewModel: SchedulerViewModel = viewModel(
+                    factory = factory
+                )
+
+                ScheduleScreen(
+                    viewModel = schedulerViewModel
+                )
+
+            }
+            composable(MoreRoutes.STATS) {
+                PlaceholderScreen(title = "Statistiken")
+            }
+            composable(MoreRoutes.SETTINGS) {
+
+                val factory = remember {
+                    SettingsViewModelFactory(
+                        tokenStore,
+                        studentRepository,
+                        appPreferences,
+                        GradeRepository(database)
+                    )
+                }
+                val settingsViewModel: SettingsViewModel = viewModel(
+                    factory = factory
+                )
+
+                SettingsScreen(
+                    viewModel = settingsViewModel,
+                    themeMode = appSettings.themeMode,
+                    onThemeModeChange = appPreferences::setThemeMode
+                )
+            }
+            composable(
+                route = "schoolYearScreen/{schoolYearId}",
+                arguments = listOf(navArgument("schoolYearId") {
+                    type = NavType.StringType
+                })
+            ) { entry ->
+                val schoolYearId = requireNotNull(
+                    entry.arguments?.getString("schoolYearId")
+                )
+                val currentSort =
+                    subjectSortBySchoolYear[schoolYearId]
+                        ?: appSettings.subjectSort
+                SchoolYearScreen(
+                    navController = navController,
+                    schoolYearId = entry.arguments?.getString("schoolYearId"),
+                    defaultSubjectSort = appSettings.subjectSort,
+                    gradeColorMode = appSettings.gradeColorMode,
+                    subjectSort = currentSort,
+                    onSubjectSortChange = { newSort ->
+                        subjectSortBySchoolYear[schoolYearId] = newSort
+                    },
+
+                    )
+            }
+            composable(
+                route = "subjectScreen/{subjectId}",
+                arguments = listOf(navArgument("subjectId") {
+                    type = NavType.StringType
+                })
+            ) { entry ->
+                val subjectId = requireNotNull(
+                    entry.arguments?.getString("subjectId")
+                )
+
+                val currentSort =
+                    gradeSortBySubject[subjectId]
+                        ?: appSettings.gradeSort
+                SubjectScreen(
+                    navController = navController,
+                    subjectId = entry.arguments?.getString("subjectId"),
+                    defaultGradeSort = appSettings.gradeSort,
+                    gradeColorMode = appSettings.gradeColorMode,
+                    gradeSort = currentSort,
+                    onGradeSortChange = { newSort ->
+                        gradeSortBySubject[subjectId] = newSort
+                    }
+                )
+            }
+            composable(MoreRoutes.STUDENT) {
+                val factory = remember {
+                    StudentViewModelFactory(
+                        studentRepository
+                    )
+                }
+                val studentViewModel: StudentViewModel = viewModel(
+                    factory = factory
+                )
+                StudentScreen(
+                    studentViewModel
+                )
+            }
+
+            composable(MoreRoutes.HELP) {
+                PlaceholderScreen("Hilfe")
+            }
+            composable(MoreRoutes.ABSENCES) {
+                val factory = remember {
+                    AbsencesViewModelFactory(
+                        studentRepository
+                    )
+                }
+                val absencesViewModel: AbsencesViewModel = viewModel(
+                    factory = factory
+                )
+                AbsencesScreen(
+                    viewModel = absencesViewModel,
+                    onOpenWebsite = { absenceId ->
+                        navController.navigate(
+                            AbsenceRoutes.website(absenceId)
+                        )
+                    }
+                )
+            }
+            composable(TopLevelDestination.MENSA.route) {
+                val factory = remember {
+                    MensaViewModelFactory(
+                        mensaRepository
+                    )
+                }
+                val mensaViewModel: MensaViewModel = viewModel(
+                    factory = factory
+                )
+                MensaScreen(
+                    viewModel = mensaViewModel,
+
+                    )
+            }
+
+            composable(MoreRoutes.TIMETABLES) {
+
+
+                val factory = remember {
+                    TimetablesViewModelFactory(
+                        lerbermattRepository = lerbermattRepository
+                    )
+                }
+                val timetablesViewModel: TimetablesViewModel = viewModel(
+                    factory = factory
+                )
+                TimetablesScreen(
+                    viewModel = timetablesViewModel
+                )
+            }
+
+            composable(
+                route = AbsenceRoutes.WEBSITE,
+                arguments = listOf(navArgument("absenceId") {
+                    type = NavType.IntType
+                })
+            ) { entry ->
+                val absenceId = requireNotNull(
+                    entry.arguments?.getInt("absenceId")
+                )
+
+                AbsenceWebsiteRoute(
+                    absenceId = absenceId,
+                    tokenStore = tokenStore,
+                    studentRepository = studentRepository,
+                    onClose = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+    }
+}

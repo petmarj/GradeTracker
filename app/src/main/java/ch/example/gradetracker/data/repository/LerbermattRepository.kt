@@ -1,0 +1,36 @@
+package ch.example.gradetracker.data.repository
+
+import com.example.gradetracker.data.remote.LerbermattPublicApi
+import com.example.gradetracker.model.TimetableLink
+import retrofit2.HttpException
+import java.io.IOException
+
+class LerbermattRepository(
+    private val api: LerbermattPublicApi
+) {
+    suspend fun getTimetableLinks(): List<TimetableLink> {
+
+        val response = try {
+            api.getTimetableLinks(
+                request = mapOf("siteId" to 1)
+            )
+        } catch (exception: IOException) {
+            throw IOException(
+                "Die Verbindung zur API ist fehlgeschlagen.",
+                exception
+            )
+        }
+
+        if (!response.isSuccessful) {
+            throw HttpException(response)
+        }
+
+        val body = response.body()
+            ?: throw IllegalStateException(
+                "Die API hat keine Antwortdaten geliefert."
+            )
+
+
+        return body.data.timetableLinks
+    }
+}
